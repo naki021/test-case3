@@ -35,20 +35,26 @@ if os.path.exists(fiets_data_path):
 else:
     st.error("❌ Map 'Fiets data' niet gevonden!")
 
-
-
 @st.cache_data
 def load_data_metro():
     jaren = list(range(2007, 2022))
     data_metro = []
+    
     for jaar in jaren:
-        extensie = 'csv' if jaar <= 2016 else 'xlsx'
-        pad = f"./data/Londen data/{jaar}_Entry_Exit.{extensie}"
-        if extensie == 'csv':
-            data_metro.append(pd.read_csv(pad, dtype=str, low_memory=False))
+        extensie = "csv" if jaar <= 2016 else "xlsx"
+        pad = os.path.join("/tmp/data", "Londen data", f"{jaar}_Entry_Exit.{extensie}")
+
+        if os.path.exists(pad):
+            if extensie == "csv":
+                data_metro.append(pd.read_csv(pad, dtype=str, low_memory=False))
+            else:
+                data_metro.append(pd.read_excel(pad, dtype=str))
         else:
-            data_metro.append(pd.read_excel(pad, dtype=str))
+            st.error(f"❌ Bestand niet gevonden: {pad}")
+
     return data_metro
+
+##tot hier
 
 # Metro data laden
 metro_data = load_data_metro()
