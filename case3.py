@@ -84,7 +84,7 @@ dec2023 = pd.concat([dec2023_1, dec2023_2], ignore_index=True)
 # Cache the loading of train lines using st.cache_data
 @st.cache_data
 def load_train_lines():
-    link_train_lines = r"C:\Users\tomgo\OneDrive\Bureaublad\Data Science\Case 3 - Londen\Data\Londen data\London Train Lines.JSON"
+    link_train_lines = r".\Data\Londen data\London Train Lines.JSON"
     with open(link_train_lines, "r", encoding="utf-8") as b:
         data = json.load(b)
     features = data["features"]
@@ -94,7 +94,7 @@ def load_train_lines():
 # Cache the loading of stations using st.cache_data
 @st.cache_data
 def load_stations():
-    link_station1 = r"C:\Users\tomgo\OneDrive\Bureaublad\Data Science\Case 3 - Londen\Data\Londen data\London stations.JSON"
+    link_station1 = r".\Data\Londen data\London stations.JSON"
     with open(link_station1, "r", encoding="utf-8") as a:
         data = json.load(a)
     features = data["features"]
