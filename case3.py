@@ -9,16 +9,12 @@ import branca.colormap as cm
 import zipfile
 import os
 
-# Pak het ZIP-bestand uit als het nog niet is uitgepakt
 zip_path = "Data.zip"
-extract_folder = "data"
 
-if not os.path.exists(extract_folder):
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_folder)
-        
-# Sidebar met tabbladen
-pagina = st.sidebar.radio("Selecteer een pagina", ['Kaart', 'Fiets vs Weer'])
+if not os.path.exists(zip_path):
+    st.error("❌ ZIP-bestand niet gevonden! Controleer of het correct is geüpload naar Streamlit Share.")
+else:
+    st.success("✅ ZIP-bestand
 
 @st.cache_data
 def load_data_metro():
