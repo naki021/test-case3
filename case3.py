@@ -225,8 +225,8 @@ fiets_per_dag_jun = load_data_fiets()
 if fiets_per_dag_jun is None:
     st.error("❌ Fietsdata kon niet worden ingeladen! Controleer de bestandsnamen.")
 else:
-    st.write("📂 Eerste paar rijen van fiets_per_dag_jun1:", fiets_per_dag_jun1.head())
-    st.write("📂 Kolommen in fiets_per_dag_jun1:", fiets_per_dag_jun1.columns)
+    st.write("📂 Eerste paar rijen van fiets_per_dag_jun1:", fiets_per_dag_jun.head())
+    st.write("📂 Kolommen in fiets_per_dag_jun1:", fiets_per_dag_jun.columns)
 
 ##
 
