@@ -255,20 +255,21 @@ jun2021["Date"] = jun2021["Start Date"].dt.date
 # Laad de weerdata correct in
 weather_data = pd.read_csv("/tmp/data/Weer data/weather_london.csv")
 
-# Hernoem de kolommen en zorg dat datum in het juiste formaat staat
+# Hernoem de kolommen en converteer de datum
 weather_data.rename(columns={"Unnamed: 0": "date"}, inplace=True)
 weather_data["date"] = pd.to_datetime(weather_data["date"], format="%Y-%m-%d")
 
+# Beschikbare weeropties
+weer_opties = {
+    "Gemiddelde Temperatuur (°C)": "tavg",
+    "Minimale Temperatuur (°C)": "tmin",
+    "Maximale Temperatuur (°C)": "tmax",
+    "Neerslag (mm)": "prcp",
+    "Windkracht (m/s)": "wspd",
+    "Luchtdruk (hPa)": "pres"
+}
+
 ##einde
-    # Beschikbare weeropties
-    weer_opties = {
-        "Gemiddelde Temperatuur (°C)": "tavg",
-        "Minimale Temperatuur (°C)": "tmin",
-        "Maximale Temperatuur (°C)": "tmax",
-        "Neerslag (mm)": "prcp",
-        "Windkracht (m/s)": "wspd",
-        "Luchtdruk (hPa)": "pres"
-    }
 
     # Dropdown voor weerfactor
     weer_keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
