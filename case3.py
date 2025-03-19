@@ -13,6 +13,9 @@ import os
 zip_path = "Data.zip"
 extract_folder = "/tmp/data/Data"
 
+st.write("📂 Bestanden in /tmp/data/Data:", os.listdir("/tmp/data/Data"))
+
+
 # Pak het ZIP-bestand uit als het nog niet is uitgepakt
 if not os.path.exists(extract_folder):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
