@@ -222,12 +222,14 @@ elif pagina == "Fiets vs Weer":  # ✅ Nu werkt elif correct!
     
 fiets_per_dag_jun = load_data_fiets()
 
-# Laad de weerdata correct in
-weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv", index_col=0)  # ✅ Laad de eerste kolom als index
-weather_data.index.name = "date"  # ✅ Geef de index de naam 'date'
-weather_data.reset_index(inplace=True)  # ✅ Zet de index terug als kolom
+weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv", index_col=0)
+
+if weather_data is None or weather_data.empty:
+    st.error("❌ Weerdata is niet correct ingeladen! Controleer het bestand.")
+    st.stop()
 
 st.write("📂 Beschikbare kolommen in weather_data:", weather_data.columns)
+
 
 # Zorg ervoor dat de datumnotaties overeenkomen
 fiets_per_dag_jun["Date"] = pd.to_datetime(fiets_per_dag_jun["Start Date"]).dt.strftime("%Y-%m-%d")
