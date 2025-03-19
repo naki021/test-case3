@@ -254,11 +254,11 @@ jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %
 jun2021["Date"] = jun2021["Start Date"].dt.date
 
 # Laad de weerdata correct in
-weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv")
+weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv",index=0)
 
 # Hernoem de kolommen en converteer de datum
 weather_data.rename(columns={"Unnamed: 0": "date"}, inplace=True)
-weather_data["date"] = pd.to_datetime(weather_data["date"], format="%Y-%m-%d")
+weather_data["date"] = pd.to_datetime(weather_data.index, format="%Y-%m-%d")
 
 # Beschikbare weeropties
 weer_opties = {
