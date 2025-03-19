@@ -272,10 +272,11 @@ weer_opties = {
 # Vraag de gebruiker om een weerfactor te kiezen
 weer_keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
 
+# Data combineren op datum
+fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"])
+
 ##einde
 
-    # Data combineren op datum
-    fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"])
     toegevoegde_data_jun1 = weather_data[["date", weer_opties[weer_keuze]]]
     merged_data_jun1 = fiets_per_dag_jun1.merge(toegevoegde_data_jun1, left_on="Date", right_on="date", how="inner")
     merged_data_jun1 = merged_data_jun1[["Date", "Total Rides", weer_opties[weer_keuze]]]
