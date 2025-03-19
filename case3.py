@@ -226,6 +226,7 @@ fiets_per_dag_jun = load_data_fiets()
 weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv", index_col=0)  # ✅ Laad de eerste kolom als index
 weather_data.index.name = "date"  # ✅ Geef de index de naam 'date'
 weather_data.reset_index(inplace=True)  # ✅ Zet de index terug als kolom
+
 st.write("📂 Beschikbare kolommen in weather_data:", weather_data.columns)
 
 # Zorg ervoor dat de datumnotaties overeenkomen
