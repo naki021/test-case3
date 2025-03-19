@@ -272,28 +272,6 @@ weer_opties = {
 # Vraag de gebruiker om een weerfactor te kiezen
 weer_keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
 
-# Data combineren op datum
-fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"])
-elif pagina == "Fiets vs Weer":
-    st.title("Fietsritten vs Weer in Londen")
-
-    # Data combineren op datum
-    fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"])
-
-    toegevoegde_data_jun1 = weather_data[["date", weer_opties[weer_keuze]]]
-    merged_data_jun1 = fiets_per_dag_jun1.merge(
-        toegevoegde_data_jun1, left_on="Date", right_on="date", how="inner"
-    )
-    merged_data_jun1 = merged_data_jun1[["Date", "Total Rides", weer_opties[weer_keuze]]]
-
-    # Data combineren op datum voor tweede dataset (juni 2022)
-    fiets_per_dag_jun2["Date"] = pd.to_datetime(fiets_per_dag_jun2["Date"])
-    toegevoegde_data_jun2 = weather_data[["date", weer_opties[weer_keuze]]]
-    merged_data_jun2 = fiets_per_dag_jun2.merge(
-        toegevoegde_data_jun2, left_on="Date", right_on="date", how="inner"
-    )
-    merged_data_jun2 = merged_data_jun2[["Date", "Total Rides", weer_opties[weer_keuze]]]
-
 ##einde
 
 # figuur met 6 grafieken over fietsritten vs weer
