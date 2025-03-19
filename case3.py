@@ -29,12 +29,7 @@ metro_data = load_data_metro()
 @st.cache_data
 def load_data_fiets():
     fiets_jaren = {
-        "jun2021": [267, 268, 269, 270, 271, 272],
-        "dec2021": [294, 295, 296, 297, 298],
-        "jun2022": [320, 321, 322, 323, 324],
-        "dec2022": [346, 347, 348, 349, 350],
-        "jun2023": [372, 373, 374, 375],
-        "dec2023": [385, 386]
+        "jun2021": [269, 270, 271],
     }
     data_fiets = {}
     
@@ -46,13 +41,6 @@ def load_data_fiets():
 
 # Fiets data laden
 fiets_data = load_data_fiets()
-
-@st.cache_data
-def load_train_lines():
-    pad = "./data/Londen data/London Train Lines.JSON"
-    with open(pad, "r", encoding="utf-8") as file:
-        data = json.load(file)
-    return pd.json_normalize(data["features"], sep="_")
 
 @st.cache_data
 def load_stations():
@@ -95,20 +83,6 @@ if "pagina" in locals() and pagina == "Kaart":
 
     m = create_m()
     st_folium(m, width=700, height=500)
-
-
-    datasets = {
-    '2007': bez_2007,
-    '2008': bez_2008,
-    '2009': bez_2009,
-    '2010': bez_2010,
-    '2011': bez_2011,
-    '2012': bez_2012,
-    '2013': bez_2013,
-    '2014': bez_2014,
-    '2015': bez_2015,
-    '2016': bez_2016
-}
     
     dic = {
     'Entry_Week': 'Entry week',
@@ -120,8 +94,6 @@ if "pagina" in locals() and pagina == "Kaart":
     'AnnualEntryExit_Mill': 'Annual Entry/Exit in millions',
 }
 
-
-    year = st.slider("Kies een jaar", min_value=2007, max_value=2016, step=1)
 
 # Haal de geselecteerde dataset op
     dataset = datasets[str(year)]
@@ -199,21 +171,6 @@ elif pagina == "Fiets vs Weer":
     jun2021["Date"] = jun2021["Start Date"].dt.date
     fiets_per_dag_jun1 = jun2021.groupby("Date").size().reset_index(name="Total Rides")
 
-    # Juni 2022
-    jun2022["Start Date"] = pd.to_datetime(jun2022["Start Date"], format="%d/%m/%Y %H:%M")
-    jun2022["Date"] = jun2022["Start Date"].dt.date
-    fiets_per_dag_jun2 = jun2022.groupby("Date").size().reset_index(name="Total Rides")
-
-    # December 2022
-    dec2022["Start date"] = pd.to_datetime(dec2022["Start date"], format="%Y-%m-%d %H:%M", errors="coerce")
-    dec2022["Date"] = dec2022["Start date"].dt.date
-    fiets_per_dag_dec2 = dec2022.groupby("Date").size().reset_index(name="Total Rides")
-
-    # December 2021
-    dec2021["Start Date"] = pd.to_datetime(dec2021["Start Date"], format="%d/%m/%Y %H:%M")
-    dec2021["Date"] = dec2021["Start Date"].dt.date
-    fiets_per_dag_dec1 = dec2021.groupby("Date").size().reset_index(name="Total Rides")
-
     # Weerdata inladen
     weather_data = pd.read_csv("./Data/Weer data/weather_london.csv")
 
@@ -246,18 +203,6 @@ elif pagina == "Fiets vs Weer":
     merged_data_jun2 = fiets_per_dag_jun2.merge(toegevoegde_data_jun2, left_on="Date", right_on="date", how="inner")
     merged_data_jun2 = merged_data_jun2[["Date", "Total Rides", weer_opties[weer_keuze]]]
 
-    # Data combineren op datum
-    fiets_per_dag_dec1["Date"] = pd.to_datetime(fiets_per_dag_dec1["Date"])
-    toegevoegde_data_dec1 = weather_data[["date", weer_opties[weer_keuze]]]
-    merged_data_dec1 = fiets_per_dag_dec1.merge(toegevoegde_data_dec1, left_on="Date", right_on="date", how="inner")
-    merged_data_dec1 = merged_data_dec1[["Date", "Total Rides", weer_opties[weer_keuze]]]
-
-    # Data combineren op datum
-    fiets_per_dag_dec2["Date"] = pd.to_datetime(fiets_per_dag_dec2["Date"])
-    toegevoegde_data_dec2 = weather_data[["date", weer_opties[weer_keuze]]]
-    merged_data_dec2 = fiets_per_dag_dec2.merge(toegevoegde_data_dec2, left_on="Date", right_on="date", how="inner")
-    merged_data_dec2 = merged_data_dec2[["Date", "Total Rides", weer_opties[weer_keuze]]]
-
 
 # figuur met 6 grafieken over fietsritten vs weer
 fig, ax = plt.subplots(2, 2, figsize=(22, 15), sharex=False)
@@ -279,23 +224,6 @@ ax2.tick_params(axis='y', labelcolor='r')
 ax1.legend(loc="upper left")
 ax2.legend(loc="upper right")
 
-# grafiek [0,1]
-ax3 = ax[0,1]
-ax3.plot(merged_data_dec1["Date"], merged_data_dec1["Total Rides"], color='b', label="Aantal Fietsritten")
-ax3.set_title(f"Aantal fietsritten en {weer_keuze} in december 2021")
-ax3.set_xlim([pd.to_datetime('2021-12-01'), pd.to_datetime('2021-12-31')])
-ax3.set_xlabel("Datum")
-ax3.set_ylabel("Aantal Fietsritten", color='b')
-ax3.tick_params(axis='y', labelcolor='b')
-
-ax4 = ax3.twinx()
-ax4.plot(merged_data_dec1["Date"], merged_data_dec1[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
-ax4.set_ylabel(weer_keuze, color='r')
-ax4.tick_params(axis='y', labelcolor='r')
-
-ax3.legend(loc="upper left")
-ax4.legend(loc="upper right")
-
 # grafiek [1,0]
 ax5 = ax[1,0]
 ax5.plot(merged_data_jun2["Date"], merged_data_jun2["Total Rides"], color='b', label="Aantal Fietsritten")
@@ -312,24 +240,6 @@ ax6.tick_params(axis='y', labelcolor='r')
 
 ax5.legend(loc="upper left")
 ax6.legend(loc="upper right")
-
-# grafiek [1,1]
-ax7 = ax[1,1]
-ax7.plot(merged_data_dec2["Date"], merged_data_dec2["Total Rides"], color='b', label="Aantal Fietsritten")
-ax7.set_title(f"Aantal fietsritten en {weer_keuze} in december 2022")
-ax7.set_xlim([pd.to_datetime('2022-12-01'), pd.to_datetime('2022-12-31')])
-ax7.set_xlabel("Datum")
-ax7.set_ylabel("Aantal Fietsritten", color='b')
-ax7.tick_params(axis='y', labelcolor='b')
-
-ax8 = ax7.twinx()
-ax8.plot(merged_data_dec2["Date"], merged_data_dec2[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
-ax8.set_ylabel(weer_keuze, color='r')
-ax8.tick_params(axis='y', labelcolor='r')
-
-ax7.legend(loc="upper left")
-ax8.legend(loc="upper right")
-
 
 fig.suptitle(f"Aantal fietsritten vs {weer_keuze} in Londen")
 plt.tight_layout()
