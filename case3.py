@@ -40,7 +40,7 @@ else:
 @st.cache_data
 def load_data_fiets():
     fiets_data = []
-    fiets_pad = "/tmp/data/Fiets data"
+    fiets_pad = "/tmp/data/Data/Fiets data"
 
     bestanden = [
         "270JourneyDataExtract16Jun2021-22Jun2021.csv",
@@ -254,7 +254,7 @@ jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %
 jun2021["Date"] = jun2021["Start Date"].dt.date
 
 # Laad de weerdata correct in
-weather_data = pd.read_csv("/tmp/data/Weer data/weather_london.csv")
+weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv")
 
 # Hernoem de kolommen en converteer de datum
 weather_data.rename(columns={"Unnamed: 0": "date"}, inplace=True)
@@ -294,23 +294,6 @@ ax2.tick_params(axis='y', labelcolor='r')
 
 ax1.legend(loc="upper left")
 ax2.legend(loc="upper right")
-
-# grafiek [1,0]
-ax5 = ax[1,0]
-ax5.plot(merged_data_jun2["Date"], merged_data_jun2["Total Rides"], color='b', label="Aantal Fietsritten")
-ax5.set_title(f"Aantal fietsritten en {weer_keuze} in juni 2022")
-ax5.set_xlim([pd.to_datetime('2022-06-01'), pd.to_datetime('2022-06-30')])
-ax5.set_xlabel("Datum")
-ax5.set_ylabel("Aantal Fietsritten", color='b')
-ax5.tick_params(axis='y', labelcolor='b')
-
-ax6 = ax5.twinx()
-ax6.plot(merged_data_jun2["Date"], merged_data_jun2[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
-ax6.set_ylabel(weer_keuze, color='r')
-ax6.tick_params(axis='y', labelcolor='r')
-
-ax5.legend(loc="upper left")
-ax6.legend(loc="upper right")
 
 fig.suptitle(f"Aantal fietsritten vs {weer_keuze} in Londen")
 plt.tight_layout()
