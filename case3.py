@@ -1,167 +1,336 @@
-import streamlit as st
 import pandas as pd
 import json
+import streamlit as st
 import folium
 from streamlit_folium import st_folium
+from folium import plugins
 import matplotlib.pyplot as plt
 import branca.colormap as cm
 
-# ---- Caching de dataset om laadtijd te verkorten ----
+# Sidebar met tabbladen
+pagina = st.sidebar.radio("Selecteer een pagina", ['Kaart', 'Fiets vs Weer'])
+
+@st.cache_data
+def load_data_metro():
+    jaren = list(range(2007, 2022))
+    data_metro = []
+    for jaar in jaren:
+        extensie = 'csv' if jaar <= 2016 else 'xlsx'
+        pad = f"./data/Londen data/{jaar}_Entry_Exit.{extensie}"
+        if extensie == 'csv':
+            data_metro.append(pd.read_csv(pad, dtype=str, low_memory=False))
+        else:
+            data_metro.append(pd.read_excel(pad, dtype=str))
+    return data_metro
+
+# Metro data laden
+metro_data = load_data_metro()
+
+@st.cache_data
+def load_data_fiets():
+    fiets_jaren = {
+        "jun2021": [267, 268, 269, 270, 271, 272],
+        "dec2021": [294, 295, 296, 297, 298],
+        "jun2022": [320, 321, 322, 323, 324],
+        "dec2022": [346, 347, 348, 349, 350],
+        "jun2023": [372, 373, 374, 375],
+        "dec2023": [385, 386]
+    }
+    data_fiets = {}
+    
+    for periode, nummers in fiets_jaren.items():
+        bestanden = [pd.read_csv(f"./data/Fiets data/{nummer}JourneyDataExtract.csv") for nummer in nummers]
+        data_fiets[periode] = pd.concat(bestanden, ignore_index=True)
+    
+    return data_fiets
+
+# Fiets data laden
+fiets_data = load_data_fiets()
+
 @st.cache_data
 def load_train_lines():
-    with open("./Data/Londen Data/London Train Lines.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
+    pad = "./data/Londen data/London Train Lines.JSON"
+    with open(pad, "r", encoding="utf-8") as file:
+        data = json.load(file)
     return pd.json_normalize(data["features"], sep="_")
 
 @st.cache_data
 def load_stations():
-    with open("./Data/Londen Data/London stations.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
+    pad = "./data/Londen data/London stations.JSON"
+    with open(pad, "r", encoding="utf-8") as file:
+        data = json.load(file)
     return pd.json_normalize(data["features"], sep="_")
 
-@st.cache_data
-def load_weather():
-    return pd.read_csv("./Data/Weer data/weather_london.csv")
-
-@st.cache_data
-def load_bike_rides():
-    return pd.read_csv("./Data/Londen Data/269JourneyDataExtract09Jun2021-15Jun2021.csv")
-
-@st.cache_data
-def load_metro_data():
-    return pd.read_excel("./Data/Londen Data/2021_Entry_Exit.xlsx")
-
-train_lines = load_train_lines()
+# Laad de treinlijnen en stations
+treinlijnen = load_train_lines()
 stations = load_stations()
-weather = load_weather()
-bike_rides = load_bike_rides()
-metro_data = load_metro_data()
 
-# ---- Sidebar-opties ----
-pagina = st.sidebar.radio("Selecteer een visualisatie:", ["Kaart", "Fiets vs Weer", "Metrodrukte vs Fietsritten"])
 
-# ---- Kaart Visualisatie ----
-if pagina == "Kaart":
-    st.title("Metrokaart van Londen: Zones & Drukte")
+if "pagina" in locals() and pagina == "Kaart":
+    @st.cache_resource
+    def create_m():
+        m = folium.Map(location=[51.508586, -0.104444], zoom_start=9)
+        plugins.Draw().add_to(m)
 
-    # Dropdown om te kiezen tussen zones en drukte
-    kaart_optie = st.selectbox("Kies weergave:", ["Zones", "Drukte"])
+        station1 = load_stations()
 
-    # Kaart aanmaken
-    def create_map(kaart_optie):
-        m = folium.Map(location=[51.5085, -0.1257], zoom_start=10)
+        for _, row in station1.iterrows():
+            coords = row['geometry_coordinates']
+            lat, lon = coords[1], coords[0]
+            color = row.get("properties_marker-color", "gray")  # Haal de kleur op uit de kolom 'properties_marker-color'
 
-        # Toon metrostationzones
-        if kaart_optie == "Zones":
-            for _, row in stations.iterrows():
-                coords = row["geometry_coordinates"]
-                folium.CircleMarker(
-                    location=[coords[1], coords[0]],
-                    radius=6,
-                    color="blue",
-                    fill=True,
-                    fill_color="blue",
-                    fill_opacity=0.7,
-                    popup=row["properties_name"]
-                ).add_to(m)
+            folium.CircleMarker(
+                location=[lat, lon],
+                radius=8,
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.7,
+                popup=row["properties_name"]
+            ).add_to(m)
 
-        # Toon metrodrukte
-        elif kaart_optie == "Drukte":
-            colormap = cm.LinearColormap(["green", "yellow", "red"], vmin=0, vmax=100)
-            for _, row in metro_data.iterrows():
-                station_name = row["Station"]
-                waarde = row["AnnualEntryExit_Mill"]
-                kleur = colormap(waarde)
+        return m  # Zorg dat return buiten de for-loop staat
 
-                # Coördinaten ophalen
-                station_info = stations[stations["properties_name"] == station_name]
-                if not station_info.empty:
-                    coords = station_info.iloc[0]["geometry_coordinates"]
-                    folium.CircleMarker(
-                        location=[coords[1], coords[0]],
-                        radius=8,
-                        color=kleur,
-                        fill=True,
-                        fill_color=kleur,
-                        fill_opacity=0.7,
-                        popup=f"{station_name}: {waarde}M"
-                    ).add_to(m)
+    st.title("London Metro Map")
 
-            m.add_child(colormap)
+    m = create_m()
+    st_folium(m, width=700, height=500)
 
-        return m
 
-    map_display = create_map(kaart_optie)
-    st_folium(map_display, width=700, height=500)
+    datasets = {
+    '2007': bez_2007,
+    '2008': bez_2008,
+    '2009': bez_2009,
+    '2010': bez_2010,
+    '2011': bez_2011,
+    '2012': bez_2012,
+    '2013': bez_2013,
+    '2014': bez_2014,
+    '2015': bez_2015,
+    '2016': bez_2016
+}
+    
+    dic = {
+    'Entry_Week': 'Entry week',
+    'Entry_Saturday': 'Entry Saturday',
+    'Entry_Sunday': 'Entry Sunday',
+    'Exit_Week': 'Exit week',
+    'Exit_Saturday': 'Exit Saturday',
+    'Exit_Sunday': 'Exit Sunday',
+    'AnnualEntryExit_Mill': 'Annual Entry/Exit in millions',
+}
 
-# ---- Fietsritten vs Weer ----
+
+    year = st.slider("Kies een jaar", min_value=2007, max_value=2016, step=1)
+
+# Haal de geselecteerde dataset op
+    dataset = datasets[str(year)]
+
+# Hardcoded kolom die je wilt gebruiken voor de visualisatie
+    column = st.selectbox("Kies een kolom", options=list(dic.keys()))
+    column1 = 'Station'  # Kolom die stationnamen bevat
+
+# Zorg ervoor dat de data numeriek zijn
+    dataset[column] = pd.to_numeric(dataset[column], errors='coerce')
+
+# Creëer de kaart
+    def create_p():
+        p = folium.Map(location=[51.5074, -0.1278], zoom_start=10)  # Londen coördinaten
+
+    # Bepaal de min/max van de geselecteerde kolom
+        vmin = 0
+        vmax = 100
+
+    # Creëer een lineaire colormap (groen -> geel -> rood)
+        colormap = cm.LinearColormap(colors=['green', 'yellow', 'red'], vmin=vmin, vmax=vmax)
+        colormap.caption = f'{column} (in miljoenen)'  # Voeg de gekozen kolomnaam toe aan de colormap
+        p.add_child(colormap)
+
+    # Itereer over de stations en pas de juiste kleuren toe
+        for idx, row in station1.iterrows():
+            station_name = row["properties_name"]  # Stationnaam uit station1
+        # Zoek de waarde voor de gekozen kolom voor het station
+            value = dataset[dataset[column1] == station_name][column].values
+
+            if len(value) > 0:
+                value = value[0]  # Haal de eerste waarde uit de lijst (aangenomen dat het unieke station is)
+            else:
+                value = None  # Geen waarde gevonden
+
+            if pd.isna(value):
+            # Geen data gevonden? Gebruik een standaard kleur
+                continue
+            else:
+            # Bepaal de kleur op basis van de colormap
+                color = colormap(value)
+
+        # Haal de coördinaten op (ervan uitgaande dat dit [lon, lat] is)
+            coords = row['geometry_coordinates']
+            lon, lat = coords[0], coords[1]
+
+        # Voeg de marker toe aan de kaart
+            folium.CircleMarker(
+                location=[lat, lon],
+                radius=8,
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.7,
+                popup=f"{station_name}: {value}"
+            ).add_to(p)
+
+        return p
+
+# Titel van de pagina
+    st.title(f"London Metro Map met {column} Data - {year}")
+
+# Genereer de kaart
+    p = create_p()
+
+# Toon de kaart in Streamlit
+    st_folium(p, width=700, height=500)
+
+
 elif pagina == "Fiets vs Weer":
-    st.title("Fietsritten vs Weer in Londen (Juni 2021)")
+    st.title("Fietsritten vs Weer in Londen")
 
-    # Data voorbereiden
-    bike_rides["Start Date"] = pd.to_datetime(bike_rides["Start Date"], format="%d/%m/%Y %H:%M")
-    bike_rides["Date"] = bike_rides["Start Date"].dt.date
-    fiets_per_dag = bike_rides.groupby("Date").size().reset_index(name="Total Rides")
+    # Juni 2021
+    jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %H:%M")
+    jun2021["Date"] = jun2021["Start Date"].dt.date
+    fiets_per_dag_jun1 = jun2021.groupby("Date").size().reset_index(name="Total Rides")
 
-    weather["date"] = pd.to_datetime(weather["Unnamed: 0"], format="%Y-%m-%d")
+    # Juni 2022
+    jun2022["Start Date"] = pd.to_datetime(jun2022["Start Date"], format="%d/%m/%Y %H:%M")
+    jun2022["Date"] = jun2022["Start Date"].dt.date
+    fiets_per_dag_jun2 = jun2022.groupby("Date").size().reset_index(name="Total Rides")
 
-    # Weeropties
+    # December 2022
+    dec2022["Start date"] = pd.to_datetime(dec2022["Start date"], format="%Y-%m-%d %H:%M", errors="coerce")
+    dec2022["Date"] = dec2022["Start date"].dt.date
+    fiets_per_dag_dec2 = dec2022.groupby("Date").size().reset_index(name="Total Rides")
+
+    # December 2021
+    dec2021["Start Date"] = pd.to_datetime(dec2021["Start Date"], format="%d/%m/%Y %H:%M")
+    dec2021["Date"] = dec2021["Start Date"].dt.date
+    fiets_per_dag_dec1 = dec2021.groupby("Date").size().reset_index(name="Total Rides")
+
+    # Weerdata inladen
+    weather_data = pd.read_csv("./Data/Weer data/weather_london.csv")
+
+    # Datumkolom hernoemen en converteren
+    weather_data.rename(columns={"Unnamed: 0": "date"}, inplace=True)
+    weather_data["date"] = pd.to_datetime(weather_data["date"], format="%Y-%m-%d")
+
+    # Beschikbare weeropties
     weer_opties = {
         "Gemiddelde Temperatuur (°C)": "tavg",
+        "Minimale Temperatuur (°C)": "tmin",
+        "Maximale Temperatuur (°C)": "tmax",
         "Neerslag (mm)": "prcp",
-        "Windkracht (m/s)": "wspd"
+        "Windkracht (m/s)": "wspd",
+        "Luchtdruk (hPa)": "pres"
     }
-    
+
+    # Dropdown voor weerfactor
     weer_keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
 
-    # Data samenvoegen
-    merged_data = fiets_per_dag.merge(weather[["date", weer_opties[weer_keuze]]], left_on="Date", right_on="date", how="inner")
+    # Data combineren op datum
+    fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"])
+    toegevoegde_data_jun1 = weather_data[["date", weer_opties[weer_keuze]]]
+    merged_data_jun1 = fiets_per_dag_jun1.merge(toegevoegde_data_jun1, left_on="Date", right_on="date", how="inner")
+    merged_data_jun1 = merged_data_jun1[["Date", "Total Rides", weer_opties[weer_keuze]]]
 
-    # Lijndiagram
-    fig, ax1 = plt.subplots(figsize=(10, 5))
-    ax1.plot(merged_data["Date"], merged_data["Total Rides"], color='b', label="Aantal Fietsritten")
-    ax1.set_ylabel("Aantal Fietsritten", color="b")
-    ax1.tick_params(axis='y', labelcolor="b")
+    # Data combineren op datum
+    fiets_per_dag_jun2["Date"] = pd.to_datetime(fiets_per_dag_jun2["Date"])
+    toegevoegde_data_jun2 = weather_data[["date", weer_opties[weer_keuze]]]
+    merged_data_jun2 = fiets_per_dag_jun2.merge(toegevoegde_data_jun2, left_on="Date", right_on="date", how="inner")
+    merged_data_jun2 = merged_data_jun2[["Date", "Total Rides", weer_opties[weer_keuze]]]
 
-    ax2 = ax1.twinx()
-    ax2.plot(merged_data["Date"], merged_data[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
-    ax2.set_ylabel(weer_keuze, color="r")
-    ax2.tick_params(axis='y', labelcolor="r")
+    # Data combineren op datum
+    fiets_per_dag_dec1["Date"] = pd.to_datetime(fiets_per_dag_dec1["Date"])
+    toegevoegde_data_dec1 = weather_data[["date", weer_opties[weer_keuze]]]
+    merged_data_dec1 = fiets_per_dag_dec1.merge(toegevoegde_data_dec1, left_on="Date", right_on="date", how="inner")
+    merged_data_dec1 = merged_data_dec1[["Date", "Total Rides", weer_opties[weer_keuze]]]
 
-    ax1.legend(loc="upper left")
-    ax2.legend(loc="upper right")
-    plt.title(f"Aantal fietsritten vs {weer_keuze} in juni 2021")
-    plt.xticks(rotation=45)
-    
-    st.pyplot(fig)
+    # Data combineren op datum
+    fiets_per_dag_dec2["Date"] = pd.to_datetime(fiets_per_dag_dec2["Date"])
+    toegevoegde_data_dec2 = weather_data[["date", weer_opties[weer_keuze]]]
+    merged_data_dec2 = fiets_per_dag_dec2.merge(toegevoegde_data_dec2, left_on="Date", right_on="date", how="inner")
+    merged_data_dec2 = merged_data_dec2[["Date", "Total Rides", weer_opties[weer_keuze]]]
 
-# ---- Metrodrukte vs Fietsritten ----
-elif pagina == "Metrodrukte vs Fietsritten":
-    st.title("Metrodrukte vs Fietsritten in Londen (2021)")
 
-    # Gemiddelde metrodrukte per maand
-    metro_data["Month"] = pd.to_datetime(metro_data["Date"]).dt.month
-    metro_gemiddeld = metro_data.groupby("Month")["AnnualEntryExit_Mill"].mean()
+# figuur met 6 grafieken over fietsritten vs weer
+fig, ax = plt.subplots(2, 2, figsize=(22, 15), sharex=False)
 
-    # Fietsritten per maand
-    bike_rides["Month"] = pd.to_datetime(bike_rides["Start Date"]).dt.month
-    fiets_gemiddeld = bike_rides.groupby("Month").size()
+# grafiek [0,0]
+ax1 = ax[0,0]
+ax1.plot(merged_data_jun1["Date"], merged_data_jun1["Total Rides"], color='b', label="Aantal Fietsritten")
+ax1.set_title(f"Aantal fietsritten en {weer_keuze} in juni 2021")
+ax1.set_xlim([pd.to_datetime('2021-06-01'), pd.to_datetime('2021-06-30')])
+ax1.set_xlabel("Datum")
+ax1.set_ylabel("Aantal Fietsritten", color='b')
+ax1.tick_params(axis='y', labelcolor='b')
 
-    # Lijndiagram
-    fig, ax1 = plt.subplots(figsize=(10, 5))
-    ax1.plot(fiets_gemiddeld.index, fiets_gemiddeld.values, color='b', label="Aantal Fietsritten")
-    ax1.set_xlabel("Maand")
-    ax1.set_ylabel("Aantal Fietsritten", color="b")
-    ax1.tick_params(axis='y', labelcolor="b")
+ax2 = ax1.twinx()
+ax2.plot(merged_data_jun1["Date"], merged_data_jun1[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
+ax2.set_ylabel(weer_keuze, color='r')
+ax2.tick_params(axis='y', labelcolor='r')
 
-    ax2 = ax1.twinx()
-    ax2.plot(metro_gemiddeld.index, metro_gemiddeld.values, color='r', linestyle="dashed", label="Metrodrukte (miljoenen)")
-    ax2.set_ylabel("Metrodrukte (miljoenen)", color="r")
-    ax2.tick_params(axis='y', labelcolor="r")
+ax1.legend(loc="upper left")
+ax2.legend(loc="upper right")
 
-    ax1.legend(loc="upper left")
-    ax2.legend(loc="upper right")
-    plt.title("Metrodrukte vs Fietsritten in 2021")
-    plt.xticks(range(1, 13))
+# grafiek [0,1]
+ax3 = ax[0,1]
+ax3.plot(merged_data_dec1["Date"], merged_data_dec1["Total Rides"], color='b', label="Aantal Fietsritten")
+ax3.set_title(f"Aantal fietsritten en {weer_keuze} in december 2021")
+ax3.set_xlim([pd.to_datetime('2021-12-01'), pd.to_datetime('2021-12-31')])
+ax3.set_xlabel("Datum")
+ax3.set_ylabel("Aantal Fietsritten", color='b')
+ax3.tick_params(axis='y', labelcolor='b')
 
-    st.pyplot(fig)
+ax4 = ax3.twinx()
+ax4.plot(merged_data_dec1["Date"], merged_data_dec1[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
+ax4.set_ylabel(weer_keuze, color='r')
+ax4.tick_params(axis='y', labelcolor='r')
+
+ax3.legend(loc="upper left")
+ax4.legend(loc="upper right")
+
+# grafiek [1,0]
+ax5 = ax[1,0]
+ax5.plot(merged_data_jun2["Date"], merged_data_jun2["Total Rides"], color='b', label="Aantal Fietsritten")
+ax5.set_title(f"Aantal fietsritten en {weer_keuze} in juni 2022")
+ax5.set_xlim([pd.to_datetime('2022-06-01'), pd.to_datetime('2022-06-30')])
+ax5.set_xlabel("Datum")
+ax5.set_ylabel("Aantal Fietsritten", color='b')
+ax5.tick_params(axis='y', labelcolor='b')
+
+ax6 = ax5.twinx()
+ax6.plot(merged_data_jun2["Date"], merged_data_jun2[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
+ax6.set_ylabel(weer_keuze, color='r')
+ax6.tick_params(axis='y', labelcolor='r')
+
+ax5.legend(loc="upper left")
+ax6.legend(loc="upper right")
+
+# grafiek [1,1]
+ax7 = ax[1,1]
+ax7.plot(merged_data_dec2["Date"], merged_data_dec2["Total Rides"], color='b', label="Aantal Fietsritten")
+ax7.set_title(f"Aantal fietsritten en {weer_keuze} in december 2022")
+ax7.set_xlim([pd.to_datetime('2022-12-01'), pd.to_datetime('2022-12-31')])
+ax7.set_xlabel("Datum")
+ax7.set_ylabel("Aantal Fietsritten", color='b')
+ax7.tick_params(axis='y', labelcolor='b')
+
+ax8 = ax7.twinx()
+ax8.plot(merged_data_dec2["Date"], merged_data_dec2[weer_opties[weer_keuze]], color='r', linestyle="dashed", label=weer_keuze)
+ax8.set_ylabel(weer_keuze, color='r')
+ax8.tick_params(axis='y', labelcolor='r')
+
+ax7.legend(loc="upper left")
+ax8.legend(loc="upper right")
+
+
+fig.suptitle(f"Aantal fietsritten vs {weer_keuze} in Londen")
+plt.tight_layout()
+st.pyplot(fig)
