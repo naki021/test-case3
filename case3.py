@@ -1,51 +1,36 @@
-import pandas as pd
-import json
+import os
+import zipfile
 import streamlit as st
-import folium
-from streamlit_folium import st_folium
-from folium import plugins
-import matplotlib.pyplot as plt
-import branca.colormap as cm
-import zipfile
-import os
 
-import zipfile
-import os
+# Controleer welke bestanden in /mnt/data/ staan
+data_folder = "/mnt/data/"
+st.write("📂 Bestanden in /mnt/data/:", os.listdir(data_folder))
 
-# 📂 **Zorg dat de Data.zip wordt uitgepakt in /tmp/data/**
-zip_path = "/mnt/data/Data.zip"
+# Zoek het ZIP-bestand in /mnt/data/
+zip_file = None
+for file in os.listdir(data_folder):
+    if file.endswith(".zip"):
+        zip_file = os.path.join(data_folder, file)
+        break
+
+# Als er geen ZIP-bestand is, geef een foutmelding en stop de code
+if zip_file is None:
+    st.error("❌ Geen ZIP-bestand gevonden in /mnt/data/. Upload het bestand opnieuw.")
+    st.stop()
+
+# Pak het ZIP-bestand uit in /tmp/data/
 extract_folder = "/tmp/data"
+with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+    zip_ref.extractall(extract_folder)
 
-# **Check of de bestanden al zijn uitgepakt, anders unzippen**
-if not os.path.exists(os.path.join(extract_folder, "Londen data")):
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_folder)
-
-# **Controleer de inhoud van /tmp/data/**
-st.write("📂 Bestanden in /tmp/data:", os.listdir("/tmp/data"))
+# Toon de uitgepakte bestanden
+st.write("📂 Bestanden in /tmp/data/:", os.listdir(extract_folder))
 
 # ✅ **Correcte paden voor de submappen**
 londen_data_path = "/tmp/data/Londen data"
 fiets_data_path = "/tmp/data/Fiets data"
 weer_data_path = "/tmp/data/Weer data"
 
-st.write("📂 Bestanden in /tmp/data:", os.listdir("/tmp/data"))
-
-# ✅ **Controleer of de mappen correct zijn uitgepakt**
-if os.path.exists(londen_data_path):
-    st.write("📂 Bestanden in Londen data:", os.listdir(londen_data_path))
-else:
-    st.error("❌ Map 'Londen data' niet gevonden!")
-
-if os.path.exists(fiets_data_path):
-    st.write("📂 Bestanden in Fiets data:", os.listdir(fiets_data_path))
-else:
-    st.error("❌ Map 'Fiets data' niet gevonden!")
-
-if os.path.exists(weer_data_path):
-    st.write("📂 Bestanden in Weer data:", os.listdir(weer_data_path))
-else:
-    st.error("❌ Map 'Weer data' niet gevonden!")
 
 # ✅ **Fietsdata laden**
 @st.cache_data
