@@ -220,15 +220,16 @@ if pagina == "Kaart":
 elif pagina == "Fiets vs Weer":  # ✅ Nu werkt elif correct!
     st.title("Fietsritten vs Weer in Londen")
     
-##nieuw begin
+fiets_per_dag_jun1 = load_data_fiets()
+
+if fiets_per_dag_jun1 is None:
+    st.error("❌ Fietsdata kon niet worden ingeladen! Controleer de bestandsnamen.")
+else:
     st.write("📂 Eerste paar rijen van fiets_per_dag_jun1:", fiets_per_dag_jun1.head())
-st.write("📂 Kolommen in fiets_per_dag_jun1:", fiets_per_dag_jun1.columns)
+    st.write("📂 Kolommen in fiets_per_dag_jun1:", fiets_per_dag_jun1.columns)
 
-st.write("📂 Eerste paar rijen van weather_data:", weather_data.head())
-st.write("📂 Kolommen in weather_data:", weather_data.columns)
+##
 
-st.write("📂 Eerste paar rijen van merged_data_jun1:", merged_data_jun1.head())
-st.write("📂 Aantal rijen in merged_data_jun1:", len(merged_data_jun1))
 
 # Zorg ervoor dat de datumnotaties overeenkomen
 fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"]).dt.strftime("%Y-%m-%d")
