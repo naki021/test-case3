@@ -187,9 +187,38 @@ if "pagina" in locals() and pagina == "Kaart":
 
 # Sidebar met tabbladen
 pagina = st.sidebar.radio("Selecteer een pagina", ['Kaart', 'Fiets vs Weer'])
-elif pagina == "Fiets vs Weer":
-    st.title("Fietsritten vs Weer in Londen")
 
+if pagina == "Kaart":
+    @st.cache_resource
+    def create_m():
+        m = folium.Map(location=[51.508586, -0.104444], zoom_start=9)
+        plugins.Draw().add_to(m)
+
+        station1 = load_stations()
+
+        for _, row in station1.iterrows():
+            coords = row['geometry_coordinates']
+            lat, lon = coords[1], coords[0]
+            color = row.get("properties_marker-color", "gray")
+
+            folium.CircleMarker(
+                location=[lat, lon],
+                radius=8,
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.7,
+                popup=row["properties_name"]
+            ).add_to(m)
+
+        return m  # Zorg dat return buiten de for-loop staat
+
+    st.title("London Metro Map")
+    m = create_m()
+    st_folium(m, width=700, height=500)
+
+elif pagina == "Fiets vs Weer":  # ✅ Nu werkt elif correct!
+    st.title("Fietsritten vs Weer in Londen")
     # Juni 2021
     jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %H:%M")
     jun2021["Date"] = jun2021["Start Date"].dt.date
