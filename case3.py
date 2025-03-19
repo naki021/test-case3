@@ -63,11 +63,6 @@ def load_data_fiets():
         st.error("❌ Geen fietsdata gevonden!")
         return None
 
-##tot hier
-
-# Metro data laden
-metro_data = load_data_metro()
-
 @st.cache_data
 def load_data_fiets():
     fiets_jaren = {
