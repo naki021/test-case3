@@ -252,10 +252,10 @@ jun2021 = load_data_fiets()
 jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %H:%M")
 jun2021["Date"] = jun2021["Start Date"].dt.date
 
-##einde
+# Laad de weerdata correct in
+weather_data = pd.read_csv("/tmp/data/Weer data/weather_london.csv")
 
-    # Weerdata inladen
-    weather_data = pd.read_csv("./Data/Weer data/weather_london.csv")
+##einde
 
     # Datumkolom hernoemen en converteren
     weather_data.rename(columns={"Unnamed: 0": "date"}, inplace=True)
