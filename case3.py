@@ -11,7 +11,7 @@ import os
 
 # Definieer paden
 zip_path = "Data.zip"
-extract_folder = "/tmp/data"
+extract_folder = "/tmp/data/Data"
 
 # Pak het ZIP-bestand uit als het nog niet is uitgepakt
 if not os.path.exists(extract_folder):
