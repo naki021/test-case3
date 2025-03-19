@@ -228,12 +228,12 @@ else:
     st.write("📂 Eerste paar rijen van fiets_per_dag_jun1:", fiets_per_dag_jun.head())
     st.write("📂 Kolommen in fiets_per_dag_jun1:", fiets_per_dag_jun.columns)
 
-##
-
 
 # Zorg ervoor dat de datumnotaties overeenkomen
-fiets_per_dag_jun["Date"] = pd.to_datetime(fiets_per_dag_jun["Date"]).dt.strftime("%Y-%m-%d")
+fiets_per_dag_jun["Date"] = pd.to_datetime(fiets_per_dag_jun["Start Date"]).dt.strftime("%Y-%m-%d")
 weather_data["date"] = pd.to_datetime(weather_data["date"]).dt.strftime("%Y-%m-%d")
+
+##
 
 # Merge de datasets opnieuw
 merged_data_jun = fiets_per_dag_jun.merge(
