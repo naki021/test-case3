@@ -66,7 +66,7 @@ def load_data_fiets():
 
 @st.cache_data
 def load_stations():
-    pad = "/tmp/data/Londen data/London stations.json"
+    pad = "/tmp/data/Data/Londen data/London stations.json"
     if os.path.exists(pad):
         with open(pad, "r", encoding="utf-8") as file:
             data = json.load(file)
