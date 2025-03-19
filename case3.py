@@ -6,7 +6,17 @@ from streamlit_folium import st_folium
 from folium import plugins
 import matplotlib.pyplot as plt
 import branca.colormap as cm
+import zipfile
+import os
 
+# Pak het ZIP-bestand uit als het nog niet is uitgepakt
+zip_path = "Data.zip"
+extract_folder = "data"
+
+if not os.path.exists(extract_folder):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_folder)
+        
 # Sidebar met tabbladen
 pagina = st.sidebar.radio("Selecteer een pagina", ['Kaart', 'Fiets vs Weer'])
 
