@@ -14,7 +14,7 @@ zip_path = "Data.zip"
 if not os.path.exists(zip_path):
     st.error("❌ ZIP-bestand niet gevonden! Controleer of het correct is geüpload naar Streamlit Share.")
 else:
-    st.success("✅ ZIP-bestand
+    st.success("✅ ZIP-bestand gevonden!")
 
 @st.cache_data
 def load_data_metro():
