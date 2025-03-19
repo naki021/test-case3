@@ -9,12 +9,33 @@ import branca.colormap as cm
 import zipfile
 import os
 
+# Definieer paden
 zip_path = "Data.zip"
+extract_folder = "/tmp/data"
 
-if not os.path.exists(zip_path):
-    st.error("❌ ZIP-bestand niet gevonden! Controleer of het correct is geüpload naar Streamlit Share.")
+# Pak het ZIP-bestand uit als het nog niet is uitgepakt
+if not os.path.exists(extract_folder):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_folder)
+
+# Controleer welke bestanden en mappen nu in extract_folder staan
+st.write("📂 Bestanden in /tmp/data:", os.listdir(extract_folder))
+
+# Controleer of de submappen correct zijn
+londen_data_path = os.path.join(extract_folder, "Londen data")
+fiets_data_path = os.path.join(extract_folder, "Fiets data")
+
+if os.path.exists(londen_data_path):
+    st.write("📂 Bestanden in Londen data:", os.listdir(londen_data_path))
 else:
-    st.success("✅ ZIP-bestand gevonden!")
+    st.error("❌ Map 'Londen data' niet gevonden!")
+
+if os.path.exists(fiets_data_path):
+    st.write("📂 Bestanden in Fiets data:", os.listdir(fiets_data_path))
+else:
+    st.error("❌ Map 'Fiets data' niet gevonden!")
+
+
 
 @st.cache_data
 def load_data_metro():
