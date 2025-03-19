@@ -185,7 +185,8 @@ if "pagina" in locals() and pagina == "Kaart":
 # Toon de kaart in Streamlit
     st_folium(p, width=700, height=500)
 
-
+# Sidebar met tabbladen
+pagina = st.sidebar.radio("Selecteer een pagina", ['Kaart', 'Fiets vs Weer'])
 elif pagina == "Fiets vs Weer":
     st.title("Fietsritten vs Weer in Londen")
 
