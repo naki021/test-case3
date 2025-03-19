@@ -1,8 +1,9 @@
-import pandas as pd
-import json
-import streamlit as st
-import folium
-from streamlit_folium import st_folium
-from folium import plugins
-import matplotlib.pyplot as plt
-import branca.colormap as cm
+streamlit==1.41.1
+pandas==2.2.2
+plotly==5.24.0
+folium==0.19.5
+streamlit_folium==0.24.0
+lxml==5.2.1
+matplotlib==3.9.2
+jsonpointer==2.1
+branca==0.8.1
