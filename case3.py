@@ -35,24 +35,33 @@ if os.path.exists(fiets_data_path):
 else:
     st.error("❌ Map 'Fiets data' niet gevonden!")
 
+## begin
 @st.cache_data
-def load_data_metro():
-    jaren = list(range(2007, 2022))
-    data_metro = []
+def load_data_fiets():
+    fiets_data = []
+    fiets_pad = "/tmp/data/Fiets data"
     
-    for jaar in jaren:
-        extensie = "csv" if jaar <= 2016 else "xlsx"
-        pad = os.path.join("/tmp/data", "Londen data", f"{jaar}_Entry_Exit.{extensie}")
-
+    # Laad alleen de drie relevante bestanden
+    bestanden = [
+        "270JourneyDataExtract16Jun2021-22Jun2021.csv",
+        "271JourneyDataExtract23Jun2021-29Jun2021.csv",
+        "269JourneyDataExtract09Jun2021-15Jun2021.csv"
+    ]
+    
+    for bestand in bestanden:
+        pad = os.path.join(fiets_pad, bestand)
+        
         if os.path.exists(pad):
-            if extensie == "csv":
-                data_metro.append(pd.read_csv(pad, dtype=str, low_memory=False))
-            else:
-                data_metro.append(pd.read_excel(pad, dtype=str))
+            fiets_data.append(pd.read_csv(pad))
         else:
             st.error(f"❌ Bestand niet gevonden: {pad}")
 
-    return data_metro
+    # Combineer alle bestanden in één DataFrame
+    if fiets_data:
+        return pd.concat(fiets_data, ignore_index=True)
+    else:
+        st.error("❌ Geen fietsdata gevonden!")
+        return None
 
 ##tot hier
 
