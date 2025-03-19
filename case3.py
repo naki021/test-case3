@@ -222,12 +222,7 @@ elif pagina == "Fiets vs Weer":  # ✅ Nu werkt elif correct!
     
 fiets_per_dag_jun = load_data_fiets()
 
-if fiets_per_dag_jun is None:
-    st.error("❌ Fietsdata kon niet worden ingeladen! Controleer de bestandsnamen.")
-else:
-    st.write("📂 Eerste paar rijen van fiets_per_dag_jun1:", fiets_per_dag_jun.head())
-    st.write("📂 Kolommen in fiets_per_dag_jun1:", fiets_per_dag_jun.columns)
-
+st.write("📂 Beschikbare kolommen in weather_data:", weather_data.columns)
 
 # Zorg ervoor dat de datumnotaties overeenkomen
 fiets_per_dag_jun["Date"] = pd.to_datetime(fiets_per_dag_jun["Start Date"]).dt.strftime("%Y-%m-%d")
