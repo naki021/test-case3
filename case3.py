@@ -224,11 +224,15 @@ fiets_per_dag_jun = load_data_fiets()
 
 weather_data = pd.read_csv("/tmp/data/Data/Weer data/weather_london.csv", index_col=0)
 
-if weather_data is None or weather_data.empty:
-    st.error("❌ Weerdata is niet correct ingeladen! Controleer het bestand.")
+if 'weather_data' not in locals():
+    st.error("❌ De variabele 'weather_data' is niet gedefinieerd!")
     st.stop()
+elif weather_data is None or weather_data.empty:
+    st.error("❌ De weerdata is leeg of niet correct geladen!")
+    st.stop()
+else:
+    st.write("📂 Beschikbare kolommen in weather_data:", weather_data.columns)
 
-st.write("📂 Beschikbare kolommen in weather_data:", weather_data.columns)
 
 
 # Zorg ervoor dat de datumnotaties overeenkomen
