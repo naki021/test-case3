@@ -19,7 +19,7 @@ if not os.path.exists(extract_folder):
         zip_ref.extractall(extract_folder)
 
 # Controleer welke bestanden en mappen nu in extract_folder staan
-st.write("📂 Bestanden in /tmp/data:", os.listdir(extract_folder))
+st.write("📂 Bestanden in /tmp/data/Data:", os.listdir(extract_folder))
 
 # Controleer of de submappen correct zijn
 londen_data_path = os.path.join(extract_folder, "Londen data")
