@@ -9,12 +9,20 @@ import branca.colormap as cm
 import zipfile
 import os
 
-# 📂 **ZIP-bestand uitpakken in de juiste map**
+import zipfile
+import os
+
+# 📂 **Zorg dat de Data.zip wordt uitgepakt in /tmp/data/**
+zip_path = "/mnt/data/Data.zip"
 extract_folder = "/tmp/data"
 
-if not os.path.exists(extract_folder):
-    with zipfile.ZipFile("Data.zip", 'r') as zip_ref:
+# **Check of de bestanden al zijn uitgepakt, anders unzippen**
+if not os.path.exists(os.path.join(extract_folder, "Londen data")):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(extract_folder)
+
+# **Controleer de inhoud van /tmp/data/**
+st.write("📂 Bestanden in /tmp/data:", os.listdir("/tmp/data"))
 
 # ✅ **Correcte paden voor de submappen**
 londen_data_path = "/tmp/data/Londen data"
