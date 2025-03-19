@@ -269,10 +269,10 @@ weer_opties = {
     "Luchtdruk (hPa)": "pres"
 }
 
-##einde
+# Vraag de gebruiker om een weerfactor te kiezen
+weer_keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
 
-    # Dropdown voor weerfactor
-    weer_keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
+##einde
 
     # Data combineren op datum
     fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"])
