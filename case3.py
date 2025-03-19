@@ -71,9 +71,33 @@ def load_data_fiets():
     data_fiets = {}
     
     for periode, nummers in fiets_jaren.items():
-        bestanden = [pd.read_csv(f"./data/Fiets data/{nummer}JourneyDataExtract.csv") for nummer in nummers]
-        data_fiets[periode] = pd.concat(bestanden, ignore_index=True)
-    
+        fiets_pad = "/tmp/data/Fiets data"
+
+bestanden = [
+    "270JourneyDataExtract16Jun2021-22Jun2021.csv",
+    "271JourneyDataExtract23Jun2021-29Jun2021.csv",
+    "269JourneyDataExtract09Jun2021-15Jun2021.csv"
+]
+
+data_fiets = []
+
+for bestand in bestanden:
+    pad = os.path.join(fiets_pad, bestand)
+
+    if os.path.exists(pad):
+        data_fiets.append(pd.read_csv(pad))
+    else:
+        st.error(f"❌ Bestand niet gevonden: {pad}")
+
+# Combineer alle bestanden in één DataFrame
+if data_fiets:
+    fiets_data = pd.concat(data_fiets, ignore_index=True)
+    st.success("✅ Fietsdata succesvol geladen!")
+    st.write(fiets_data.head())  # Laat de eerste rijen zien
+else:
+    st.error("❌ Geen fietsdata gevonden!")
+    fiets_data = None
+
     return data_fiets
 
 # Fiets data laden
