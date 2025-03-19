@@ -36,21 +36,21 @@ else:
     st.error("❌ Map 'Fiets data' niet gevonden!")
 
 ## begin
+
 @st.cache_data
 def load_data_fiets():
     fiets_data = []
     fiets_pad = "/tmp/data/Fiets data"
-    
-    # Laad alleen de drie relevante bestanden
+
     bestanden = [
         "270JourneyDataExtract16Jun2021-22Jun2021.csv",
         "271JourneyDataExtract23Jun2021-29Jun2021.csv",
         "269JourneyDataExtract09Jun2021-15Jun2021.csv"
     ]
-    
+
     for bestand in bestanden:
         pad = os.path.join(fiets_pad, bestand)
-        
+
         if os.path.exists(pad):
             fiets_data.append(pd.read_csv(pad))
         else:
@@ -62,58 +62,20 @@ def load_data_fiets():
     else:
         st.error("❌ Geen fietsdata gevonden!")
         return None
-
-@st.cache_data
-def load_data_fiets():
-    fiets_jaren = {
-        "jun2021": [269, 270, 271],
-    }
-    data_fiets = {}
-    
-    for periode, nummers in fiets_jaren.items():
-        fiets_pad = "/tmp/data/Fiets data"
-
-bestanden = [
-    "270JourneyDataExtract16Jun2021-22Jun2021.csv",
-    "271JourneyDataExtract23Jun2021-29Jun2021.csv",
-    "269JourneyDataExtract09Jun2021-15Jun2021.csv"
-]
-
-data_fiets = []
-
-for bestand in bestanden:
-    pad = os.path.join(fiets_pad, bestand)
-
-    if os.path.exists(pad):
-        data_fiets.append(pd.read_csv(pad))
-    else:
-        st.error(f"❌ Bestand niet gevonden: {pad}")
-
-# Combineer alle bestanden in één DataFrame
-if data_fiets:
-    fiets_data = pd.concat(data_fiets, ignore_index=True)
-    st.success("✅ Fietsdata succesvol geladen!")
-    st.write(fiets_data.head())  # Laat de eerste rijen zien
-else:
-    st.error("❌ Geen fietsdata gevonden!")
-    fiets_data = None
-
-    return data_fiets
-
-# Fiets data laden
-fiets_data = load_data_fiets()
+##einde een
 
 @st.cache_data
 def load_stations():
-    pad = "./data/Londen data/London stations.JSON"
-    with open(pad, "r", encoding="utf-8") as file:
-        data = json.load(file)
-    return pd.json_normalize(data["features"], sep="_")
+    pad = "/tmp/data/Londen data/London stations.json"
+    if os.path.exists(pad):
+        with open(pad, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return pd.json_normalize(data["features"], sep="_")
+    else:
+        st.error(f"❌ Bestand niet gevonden: {pad}")
+        return None
 
-# Laad de treinlijnen en stations
-treinlijnen = load_train_lines()
-stations = load_stations()
-
+##einde 2
 
 if "pagina" in locals() and pagina == "Kaart":
     @st.cache_resource
