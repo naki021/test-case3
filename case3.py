@@ -230,6 +230,25 @@ st.write("📂 Kolommen in weather_data:", weather_data.columns)
 st.write("📂 Eerste paar rijen van merged_data_jun1:", merged_data_jun1.head())
 st.write("📂 Aantal rijen in merged_data_jun1:", len(merged_data_jun1))
 
+# Zorg ervoor dat de datumnotaties overeenkomen
+fiets_per_dag_jun1["Date"] = pd.to_datetime(fiets_per_dag_jun1["Date"]).dt.strftime("%Y-%m-%d")
+weather_data["date"] = pd.to_datetime(weather_data["date"]).dt.strftime("%Y-%m-%d")
+
+# Merge de datasets opnieuw
+merged_data_jun1 = fiets_per_dag_jun1.merge(
+    weather_data, left_on="Date", right_on="date", how="left"
+)
+
+# Controleer of de merge werkt
+if merged_data_jun1.empty:
+    st.error("❌ Merge tussen fietsritten en weerdata is mislukt! Controleer de datumnotatie.")
+else:
+    st.success("✅ Merge succesvol uitgevoerd!")
+    
+jun2021 = load_data_fiets()  # Zorg ervoor dat de fietsdata correct wordt ingeladen
+
+##einde
+
     # Juni 2021
     jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %H:%M")
     jun2021["Date"] = jun2021["Start Date"].dt.date
