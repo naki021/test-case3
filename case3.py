@@ -245,14 +245,14 @@ if merged_data_jun1.empty:
 else:
     st.success("✅ Merge succesvol uitgevoerd!")
     
-jun2021 = load_data_fiets()  # Zorg ervoor dat de fietsdata correct wordt ingeladen
+ # Laad de fietsdata correct in
+jun2021 = load_data_fiets()
+
+# Converteer de datumkolom naar een datetime-formaat
+jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %H:%M")
+jun2021["Date"] = jun2021["Start Date"].dt.date
 
 ##einde
-
-    # Juni 2021
-    jun2021["Start Date"] = pd.to_datetime(jun2021["Start Date"], format="%d/%m/%Y %H:%M")
-    jun2021["Date"] = jun2021["Start Date"].dt.date
-    fiets_per_dag_jun1 = jun2021.groupby("Date").size().reset_index(name="Total Rides")
 
     # Weerdata inladen
     weather_data = pd.read_csv("./Data/Weer data/weather_london.csv")
