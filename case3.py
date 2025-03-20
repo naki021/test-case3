@@ -343,7 +343,10 @@ for jaar in jaren:
 ax.plot(subset["month"], subset["tavg"], marker='o', label=str(jaar))
 ax.plot(basis_2023["month"], voorspelling, linestyle='dotted', color='deeppink', marker='s', label='Voorspelling 2023')
 ax.set_xticks(range(1, 13))
-    ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])
+
+for jaar in jaren:
+    subset = df_mean[df_mean["year"] == jaar]
+    ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])  # ✅ 这里的缩进正确
     ax.set_xlabel("Maand")
     ax.set_ylabel("Gemiddelde temperatuur (°C)")
     ax.set_title("🌡️ Voorspelling temperatuur 2023")
