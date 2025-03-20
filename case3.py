@@ -337,8 +337,9 @@ basis_2023 = df_mean.groupby("month")[["tmin", "tmax", "prcp", "wspd", "pres"]].
 voorspelling = model.predict(basis_2023[["tmin", "tmax", "prcp", "wspd", "pres"]])
 
 fig, ax = plt.subplots(figsize=(10, 5))
-for jaar in [2020, 2021, 2022]:
-subset = df_mean[df_mean["year"] == jaar]
+for jaar in jaren:
+    subset = df_mean[df_mean["year"] == jaar]  # ✅ 这里正确缩进
+
 ax.plot(subset["month"], subset["tavg"], marker='o', label=str(jaar))
 ax.plot(basis_2023["month"], voorspelling, linestyle='dotted', color='deeppink', marker='s', label='Voorspelling 2023')
 ax.set_xticks(range(1, 13))
