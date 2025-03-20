@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
 import folium
+import zipfile
+import os
 from folium import plugins
 from streamlit_folium import st_folium
 from sklearn.linear_model import LinearRegression
@@ -14,19 +16,35 @@ from branca.colormap import LinearColormap
 # -------------------------------
 # CACHING DATA
 # -------------------------------
+ZIP_PATH = "/mnt/data/Data.zip"
+EXTRACT_PATH = "/mnt/data/extracted_data"
+
+# Functie om het ZIP-bestand uit te pakken
+@st.cache_data
+def extract_zip(zip_path, extract_to):
+    if not os.path.exists(extract_to):
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_to)
+    return extract_to
+
+# ZIP-bestand uitpakken
+BASE_PATH = extract_zip(ZIP_PATH, EXTRACT_PATH) + "/Data"
+
 @st.cache_data
 def load_metro_data():
+    """Laadt metro data uit een Excel-bestand (alleen 2021 aanwezig)."""
     data = {}
-    for year in range(2007, 2017):
-        path = f"./Londen data/{year}_Entry_Exit.csv"
+    for year in range(2021, 2022):  # Alleen 2021-bestand is beschikbaar
+        path = os.path.join(BASE_PATH, "Londen data", f"{year}_Entry_Exit.xlsx")
         if os.path.exists(path):
-            df = pd.read_csv(path)
+            df = pd.read_excel(path)  # XLSX-bestand lezen
             data[str(year)] = df
     return data
 
 @st.cache_data
 def load_weather_data():
-    path = "./Weer data/weather_london.csv"
+    """Laadt weerdata uit het CSV-bestand."""
+    path = os.path.join(BASE_PATH, "Weer data", "weather_london.csv")
     if not os.path.exists(path):
         st.error(f"❌ Bestand niet gevonden: {path}")
         return pd.DataFrame()
@@ -40,18 +58,51 @@ def load_weather_data():
 
 @st.cache_data
 def load_stations():
-    with open("./Londen data/London stations.JSON", "r", encoding="utf-8") as file:
+    """Laadt metrostation data uit een JSON-bestand."""
+    path = os.path.join(BASE_PATH, "Londen data", "London stations.json")
+    if not os.path.exists(path):
+        st.error(f"❌ Bestand niet gevonden: {path}")
+        return pd.DataFrame()
+    with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
     return pd.json_normalize(data["features"], sep="_")
 
 @st.cache_data
 def load_train_lines():
-    with open("./Londen data/London Train Lines.JSON", "r", encoding="utf-8") as file:
+    """Laadt treinlijn data uit een JSON-bestand."""
+    path = os.path.join(BASE_PATH, "Londen data", "stations.json")
+    if not os.path.exists(path):
+        st.error(f"❌ Bestand niet gevonden: {path}")
+        return pd.DataFrame()
+    with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
     return pd.json_normalize(data["features"], sep="_")
 
+# Streamlit UI
+st.title("📊 London Transport & Weather Data")
 
-import zipfile
+# Laad de datasets
+st.subheader("🚇 Metro Data")
+metro_data = load_metro_data()
+if metro_data:
+    for year, df in metro_data.items():
+        st.write(f"**{year} Data:**")
+        st.dataframe(df.head())
+
+st.subheader("🌦️ Weer Data")
+weather_data = load_weather_data()
+if not weather_data.empty:
+    st.dataframe(weather_data.head())
+
+st.subheader("🚉 Stations Data")
+stations_data = load_stations()
+if not stations_data.empty:
+    st.dataframe(stations_data.head())
+
+st.subheader("🚆 Treinlijnen Data")
+train_lines_data = load_train_lines()
+if not train_lines_data.empty:
+    st.dataframe(train_lines_data.head())
 
 @st.cache_data
 def load_bike_data():
