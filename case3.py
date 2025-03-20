@@ -16,8 +16,6 @@ from branca.colormap import LinearColormap
 # -------------------------------
 # CACHING DATA
 # -------------------------------
-ZIP_PATH = "/mnt/data/Data.zip"
-EXTRACT_PATH = "/mnt/data/extracted_data"
 import os
 import json
 import pandas as pd
@@ -26,7 +24,7 @@ import zipfile
 import requests
 
 # **替换成你的 GitHub ZIP 文件的正确 URL**
-GITHUB_ZIP_URL = "https://github.com/你的用户名/你的仓库名/raw/main/Data.zip"
+GITHUB_ZIP_URL = "https://github.com/naki021/test-case3/raw/main/Data.zip"
 
 # Streamlit 服务器上的存储路径
 ZIP_PATH = "/mnt/data/Data.zip"
