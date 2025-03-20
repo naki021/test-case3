@@ -23,16 +23,19 @@ import streamlit as st
 import zipfile
 import requests
 
-# **替换成你的 GitHub ZIP 文件的正确 URL**
+# **你的 GitHub ZIP 文件 URL**
 GITHUB_ZIP_URL = "https://github.com/naki021/test-case3/raw/main/Data.zip"
 
-# Streamlit 服务器上的存储路径
-ZIP_PATH = "/mnt/data/Data.zip"
-EXTRACT_PATH = "/mnt/data/extracted_data"
+# **修改 ZIP 存储路径**
+ZIP_PATH = "./Data.zip"
+EXTRACT_PATH = "./extracted_data"
 
 def download_zip(url, save_path):
     """从 GitHub 下载 ZIP 文件"""
-    if not os.path.exists(save_path):  # 只有在文件不存在时才下载
+    st.write(f"📥 正在下载 ZIP 文件: {url}")
+    
+    # 确保没有错误
+    try:
         response = requests.get(url, stream=True)
         if response.status_code == 200:
             with open(save_path, "wb") as f:
@@ -40,26 +43,35 @@ def download_zip(url, save_path):
                     f.write(chunk)
             st.success("✅ ZIP 文件下载成功！")
         else:
-            st.error(f"❌ 无法下载 ZIP 文件，错误代码: {response.status_code}")
+            st.error(f"❌ 下载失败，状态码: {response.status_code}")
             return None
+    except Exception as e:
+        st.error(f"❌ 下载 ZIP 文件时出错: {e}")
+        return None
+    
     return save_path
 
 @st.cache_data
 def extract_zip(zip_path, extract_to):
     """解压 ZIP 文件"""
     if os.path.exists(zip_path):
+        os.makedirs(extract_to, exist_ok=True)  # 确保目标文件夹存在
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_to)
+        st.success("✅ ZIP 文件解压成功！")
         return extract_to
     else:
         st.error("❌ ZIP 文件未找到，无法解压！")
         return None
 
 # **先下载 ZIP 文件**
-download_zip(GITHUB_ZIP_URL, ZIP_PATH)
+downloaded_zip = download_zip(GITHUB_ZIP_URL, ZIP_PATH)
 
-# **然后解压**
-BASE_PATH = extract_zip(ZIP_PATH, EXTRACT_PATH) + "/Data"
+# **如果下载成功，解压 ZIP**
+if downloaded_zip:
+    BASE_PATH = extract_zip(ZIP_PATH, EXTRACT_PATH) + "/Data"
+else:
+    st.error("❌ ZIP 文件下载失败，无法继续运行！")
 
 # Functie om het ZIP-bestand uit te pakken
 @st.cache_data
