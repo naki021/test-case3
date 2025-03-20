@@ -300,7 +300,7 @@ for i, (titel, df, datumkolom) in enumerate(maanden):
 
 st.pyplot(fig)
 
-    st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
+st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
     label_dict = {
         "tavg": "Gemiddelde temperatuur (°C)",
         "tmin": "Minimale temperatuur (°C)",
