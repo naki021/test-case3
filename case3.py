@@ -281,24 +281,24 @@ def pagina_fiets_vs_weer():
         merged = per_dag.merge(weer[["date", kolom]], left_on="Date", right_on="date", how="inner")
         return merged[["Date", "Total Rides", kolom]]
 
-    maanden = [
-        ("juni 2021", fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)], "Start Date"),
-        ("december 2021", fiets[fiets["Start Date"].str.contains("12/2021", na=False)], "Start Date")
-    ]
+maanden = [
+    ("juni 2021", fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)], "Start Date")
+]
 
-    fig, axs = plt.subplots(1, 2, figsize=(20, 6))
-    for i, (titel, df, datumkolom) in enumerate(maanden):
-        data = combineer_fiets_met_weer(df, datumkolom)
-        ax = axs[i]
-        ax2 = ax.twinx()
-        ax.plot(data["Date"], data["Total Rides"], label="Fietsritten", color='blue')
-        ax2.plot(data["Date"], data[kolom], label=keuze, color='red', linestyle='dashed')
-        ax.set_title(f"{titel.capitalize()}: Fietsritten vs {keuze}")
-        ax.set_xlabel("Datum")
-        ax.set_ylabel("Aantal Fietsritten", color='blue')
-        ax2.set_ylabel(keuze, color='red')
+fig, axs = plt.subplots(1, 1, figsize=(10, 6))  # 只保留 1 个图
+for i, (titel, df, datumkolom) in enumerate(maanden):
+    data = combineer_fiets_met_weer(df, datumkolom)
+    ax = axs if isinstance(axs, plt.Axes) else axs[i]  # 确保 axs 仍然是单个图
 
-    st.pyplot(fig)
+    ax2 = ax.twinx()
+    ax.plot(data["Date"], data["Total Rides"], label="Fietsritten", color='blue')
+    ax2.plot(data["Date"], data[kolom], label=keuze, color='red', linestyle='dashed')
+    ax.set_title(f"{titel.capitalize()}: Fietsritten vs {keuze}")
+    ax.set_xlabel("Datum")
+    ax.set_ylabel("Aantal Fietsritten", color='blue')
+    ax2.set_ylabel(keuze, color='red')
+
+st.pyplot(fig)
 
     st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
     label_dict = {
