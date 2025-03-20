@@ -19,16 +19,13 @@ import streamlit as st
 import zipfile
 import requests
 
-# **你的 GitHub ZIP 文件 URL**
+# **ZIP URL**
 GITHUB_ZIP_URL = "https://github.com/naki021/test-case3/raw/main/Data.zip"
-
-# **修改 ZIP 存储路径**
 ZIP_PATH = "./Data.zip"
 EXTRACT_PATH = "./extracted_data"
 
 @st.cache_data
 def load_train_lines():
-    """Laadt treinlijn data uit een JSON-bestand，并检查 JSON 结构"""
     path = os.path.join(BASE_PATH, "Londen data", "stations.json")
     
     if not os.path.exists(path):
@@ -38,16 +35,13 @@ def load_train_lines():
     with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
-    # **打印 JSON 数据**
-    st.write("🚀 JSON 数据结构:", data)
-
-    # **检查 'features' 键是否存在**
+    # **check 'features' **
     if isinstance(data, dict) and "features" in data:
         return pd.json_normalize(data["features"], sep="_")
-    elif isinstance(data, list):  # 如果 JSON 直接是一个列表
+    elif isinstance(data, list):  
         return pd.json_normalize(data, sep="_")
     else:
-        st.error("❌ JSON 文件格式错误: 'features' 键不存在！")
+        st.error("❌ JSON : 'features' niet gevonden！")
         return pd.DataFrame()
 
 
@@ -136,18 +130,18 @@ def load_bike_data():
     bike_folder = os.path.join(BASE_PATH, "Fiets data")  # 确保路径正确
     all_data = []
 
-    # **检查文件夹是否存在**
+    # **check bestand**
     if not os.path.exists(bike_folder):
         st.error(f"❌ Bestand niet gevonden: {bike_folder}")
         return pd.DataFrame()
 
     for file in os.listdir(bike_folder):
-        if file.endswith(".csv"):  # 确保只加载 CSV 文件
+        if file.endswith(".csv"):  #  CSV 文件
             path = os.path.join(bike_folder, file)
-            df = pd.read_csv(path, dtype=str, low_memory=False)  # 读取 CSV
+            df = pd.read_csv(path, dtype=str, low_memory=False)  # CSV inlezen
             all_data.append(df)
 
-    # **打印调试信息**
+    # **check**
     st.write(f"📊 Gevonden {len(all_data)} fietsdata bestanden")
 
     if not all_data:
