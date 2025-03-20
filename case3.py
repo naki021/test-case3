@@ -285,23 +285,22 @@ maanden = [
     ("juni 2021", fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)], "Start Date")
 ]
 
-fig, axs = plt.subplots(1, 1, figsize=(10, 6))  # 只保留 1 个图
-for i, (titel, df, datumkolom) in enumerate(maanden):
-    data = combineer_fiets_met_weer(df, datumkolom)
-    ax = axs if isinstance(axs, plt.Axes) else axs[i]  # 确保 axs 仍然是单个图
+    fig, axs = plt.subplots(1, 1, figsize=(20, 6))
+    for i, (titel, df, datumkolom) in enumerate(maanden):
+        data = combineer_fiets_met_weer(df, datumkolom)
+        ax = axs[i]
+        ax2 = ax.twinx()
+        ax.plot(data["Date"], data["Total Rides"], label="Fietsritten", color='blue')
+        ax2.plot(data["Date"], data[kolom], label=keuze, color='red', linestyle='dashed')
+        ax.set_title(f"{titel.capitalize()}: Fietsritten vs {keuze}")
+        ax.set_xlabel("Datum")
+        ax.set_ylabel("Aantal Fietsritten", color='blue')
+        ax2.set_ylabel(keuze, color='red')
 
-    ax2 = ax.twinx()
-    ax.plot(data["Date"], data["Total Rides"], label="Fietsritten", color='blue')
-    ax2.plot(data["Date"], data[kolom], label=keuze, color='red', linestyle='dashed')
-    ax.set_title(f"{titel.capitalize()}: Fietsritten vs {keuze}")
-    ax.set_xlabel("Datum")
-    ax.set_ylabel("Aantal Fietsritten", color='blue')
-    ax2.set_ylabel(keuze, color='red')
+    st.pyplot(fig)
 
-st.pyplot(fig)
-
-st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
-label_dict = {
+    st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
+    label_dict = {
         "tavg": "Gemiddelde temperatuur (°C)",
         "tmin": "Minimale temperatuur (°C)",
         "tmax": "Maximale temperatuur (°C)",
@@ -309,44 +308,39 @@ label_dict = {
         "wspd": "Windsnelheid (km/u)",
         "pres": "Luchtdruk (hPa)"
     }
-var = st.selectbox("Kies een variabele:", options=list(label_dict.keys()), format_func=lambda x: label_dict[x])
-df = weer.groupby(["year", "month"])[var].mean().reset_index()
-fig, ax = plt.subplots(figsize=(10, 5))
+    var = st.selectbox("Kies een variabele:", options=list(label_dict.keys()), format_func=lambda x: label_dict[x])
+    df = weer.groupby(["year", "month"])[var].mean().reset_index()
 
-for jaar in jaren:
-    subset = df[df["year"] == jaar]  # ✅ 这里正确缩进
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for jaar in [2020, 2021, 2022]:
+        subset = df[df["year"] == jaar]
+        ax.plot(subset["month"], subset[var], marker='o', label=str(jaar))
+    ax.set_xticks(range(1, 13))
+    ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])
+    ax.set_xlabel("Maand")
+    ax.set_ylabel(label_dict[var])
+    ax.set_title(f"{label_dict[var]} per maand")
+    ax.legend()
+    ax.grid(True)
+    st.pyplot(fig)
 
+    # Voorspelling
+    st.subheader("🧠 Voorspelling temperatuur 2023")
+    numerieke_kolommen = ["tmin", "tmax", "prcp", "wspd", "pres", "tavg"]
+    df_mean = weer.groupby(["year", "month"])[numerieke_kolommen].mean().reset_index()
+    model = LinearRegression()
+    model.fit(df_mean[["tmin", "tmax", "prcp", "wspd", "pres"]], df_mean["tavg"])
 
-ax.plot(subset["month"], subset[var], marker='o', label=str(jaar))
-ax.set_xticks(range(1, 13))
-ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])
-ax.set_xlabel("Maand")
-ax.set_ylabel(label_dict[var])
-ax.set_title(f"{label_dict[var]} per maand")
-ax.legend()
-ax.grid(True)
-st.pyplot(fig)
+    basis_2023 = df_mean.groupby("month")[["tmin", "tmax", "prcp", "wspd", "pres"]].mean().reset_index()
+    voorspelling = model.predict(basis_2023[["tmin", "tmax", "prcp", "wspd", "pres"]])
 
- # Voorspelling
-st.subheader("🧠 Voorspelling temperatuur 2023")
-numerieke_kolommen = ["tmin", "tmax", "prcp", "wspd", "pres", "tavg"]
-df_mean = weer.groupby(["year", "month"])[numerieke_kolommen].mean().reset_index()
-model = LinearRegression()
-model.fit(df_mean[["tmin", "tmax", "prcp", "wspd", "pres"]], df_mean["tavg"])
-basis_2023 = df_mean.groupby("month")[["tmin", "tmax", "prcp", "wspd", "pres"]].mean().reset_index()
-voorspelling = model.predict(basis_2023[["tmin", "tmax", "prcp", "wspd", "pres"]])
-
-fig, ax = plt.subplots(figsize=(10, 5))
-for jaar in jaren:
-    subset = df_mean[df_mean["year"] == jaar]  # ✅ 这里正确缩进
-
-ax.plot(subset["month"], subset["tavg"], marker='o', label=str(jaar))
-ax.plot(basis_2023["month"], voorspelling, linestyle='dotted', color='deeppink', marker='s', label='Voorspelling 2023')
-ax.set_xticks(range(1, 13))
-
-for jaar in jaren:
-    subset = df_mean[df_mean["year"] == jaar]
-    ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])  # ✅ 这里的缩进正确
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for jaar in [2020, 2021, 2022]:
+        subset = df_mean[df_mean["year"] == jaar]
+        ax.plot(subset["month"], subset["tavg"], marker='o', label=str(jaar))
+    ax.plot(basis_2023["month"], voorspelling, linestyle='dotted', color='deeppink', marker='s', label='Voorspelling 2023')
+    ax.set_xticks(range(1, 13))
+    ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])
     ax.set_xlabel("Maand")
     ax.set_ylabel("Gemiddelde temperatuur (°C)")
     ax.set_title("🌡️ Voorspelling temperatuur 2023")
