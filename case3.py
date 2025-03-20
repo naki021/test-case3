@@ -12,10 +12,6 @@ from folium import plugins
 from streamlit_folium import st_folium
 from sklearn.linear_model import LinearRegression
 from branca.colormap import LinearColormap
-
-# -------------------------------
-# CACHING DATA
-# -------------------------------
 import os
 import json
 import pandas as pd
@@ -30,48 +26,27 @@ GITHUB_ZIP_URL = "https://github.com/naki021/test-case3/raw/main/Data.zip"
 ZIP_PATH = "./Data.zip"
 EXTRACT_PATH = "./extracted_data"
 
-def download_zip(url, save_path):
-    """从 GitHub 下载 ZIP 文件"""
-    st.write(f"📥 正在下载 ZIP 文件: {url}")
-    
-    # 确保没有错误
-    try:
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            with open(save_path, "wb") as f:
-                for chunk in response.iter_content(1024):
-                    f.write(chunk)
-            st.success("✅ ZIP 文件下载成功！")
-        else:
-            st.error(f"❌ 下载失败，状态码: {response.status_code}")
-            return None
-    except Exception as e:
-        st.error(f"❌ 下载 ZIP 文件时出错: {e}")
-        return None
-    
-    return save_path
-
 @st.cache_data
-def extract_zip(zip_path, extract_to):
-    """解压 ZIP 文件"""
-    if os.path.exists(zip_path):
-        os.makedirs(extract_to, exist_ok=True)  # 确保目标文件夹存在
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(extract_to)
-        st.success("✅ ZIP 文件解压成功！")
-        return extract_to
-    else:
-        st.error("❌ ZIP 文件未找到，无法解压！")
-        return None
+def load_train_lines():
+    """Laadt treinlijn data uit een JSON-bestand，并检查 JSON 结构"""
+    path = os.path.join(BASE_PATH, "Londen data", "stations.json")
+    
+    if not os.path.exists(path):
+        st.error(f"❌ Bestand niet gevonden: {path}")
+        return pd.DataFrame()
+    
+    with open(path, "r", encoding="utf-8") as file:
+        data = json.load(file)
 
-# **先下载 ZIP 文件**
-downloaded_zip = download_zip(GITHUB_ZIP_URL, ZIP_PATH)
+    # **打印 JSON 结构**
+    st.write("🚀 JSON 数据结构:", data)
 
-# **如果下载成功，解压 ZIP**
-if downloaded_zip:
-    BASE_PATH = extract_zip(ZIP_PATH, EXTRACT_PATH) + "/Data"
-else:
-    st.error("❌ ZIP 文件下载失败，无法继续运行！")
+    # **检查 'features' 键是否存在**
+    if "features" not in data:
+        st.error("❌ JSON 文件格式错误：'features' 键不存在！")
+        return pd.DataFrame()
+    
+    return pd.json_normalize(data["features"], sep="_")
 
 # Functie om het ZIP-bestand uit te pakken
 @st.cache_data
