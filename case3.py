@@ -312,8 +312,11 @@ label_dict = {
 var = st.selectbox("Kies een variabele:", options=list(label_dict.keys()), format_func=lambda x: label_dict[x])
 df = weer.groupby(["year", "month"])[var].mean().reset_index()
 fig, ax = plt.subplots(figsize=(10, 5))
-for jaar in [2020, 2021, 2022]:
-subset = df[df["year"] == jaar]
+
+for jaar in jaren:
+    subset = df[df["year"] == jaar]  # ✅ 这里正确缩进
+
+
 ax.plot(subset["month"], subset[var], marker='o', label=str(jaar))
 ax.set_xticks(range(1, 13))
 ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])
