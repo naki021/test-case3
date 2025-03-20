@@ -18,6 +18,50 @@ from branca.colormap import LinearColormap
 # -------------------------------
 ZIP_PATH = "/mnt/data/Data.zip"
 EXTRACT_PATH = "/mnt/data/extracted_data"
+import os
+import json
+import pandas as pd
+import streamlit as st
+import zipfile
+import requests
+
+# **替换成你的 GitHub ZIP 文件的正确 URL**
+GITHUB_ZIP_URL = "https://github.com/你的用户名/你的仓库名/raw/main/Data.zip"
+
+# Streamlit 服务器上的存储路径
+ZIP_PATH = "/mnt/data/Data.zip"
+EXTRACT_PATH = "/mnt/data/extracted_data"
+
+def download_zip(url, save_path):
+    """从 GitHub 下载 ZIP 文件"""
+    if not os.path.exists(save_path):  # 只有在文件不存在时才下载
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            with open(save_path, "wb") as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+            st.success("✅ ZIP 文件下载成功！")
+        else:
+            st.error(f"❌ 无法下载 ZIP 文件，错误代码: {response.status_code}")
+            return None
+    return save_path
+
+@st.cache_data
+def extract_zip(zip_path, extract_to):
+    """解压 ZIP 文件"""
+    if os.path.exists(zip_path):
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_to)
+        return extract_to
+    else:
+        st.error("❌ ZIP 文件未找到，无法解压！")
+        return None
+
+# **先下载 ZIP 文件**
+download_zip(GITHUB_ZIP_URL, ZIP_PATH)
+
+# **然后解压**
+BASE_PATH = extract_zip(ZIP_PATH, EXTRACT_PATH) + "/Data"
 
 # Functie om het ZIP-bestand uit te pakken
 @st.cache_data
