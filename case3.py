@@ -38,15 +38,18 @@ def load_train_lines():
     with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
-    # **打印 JSON 结构**
+    # **打印 JSON 数据**
     st.write("🚀 JSON 数据结构:", data)
 
     # **检查 'features' 键是否存在**
-    if "features" not in data:
-        st.error("❌ JSON 文件格式错误：'features' 键不存在！")
+    if isinstance(data, dict) and "features" in data:
+        return pd.json_normalize(data["features"], sep="_")
+    elif isinstance(data, list):  # 如果 JSON 直接是一个列表
+        return pd.json_normalize(data, sep="_")
+    else:
+        st.error("❌ JSON 文件格式错误: 'features' 键不存在！")
         return pd.DataFrame()
-    
-    return pd.json_normalize(data["features"], sep="_")
+
 
 # Functie om het ZIP-bestand uit te pakken
 @st.cache_data
@@ -106,32 +109,6 @@ def load_train_lines():
     with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
     return pd.json_normalize(data["features"], sep="_")
-
-# Streamlit UI
-st.title("📊 London Transport & Weather Data")
-
-# Laad de datasets
-st.subheader("🚇 Metro Data")
-metro_data = load_metro_data()
-if metro_data:
-    for year, df in metro_data.items():
-        st.write(f"**{year} Data:**")
-        st.dataframe(df.head())
-
-st.subheader("🌦️ Weer Data")
-weather_data = load_weather_data()
-if not weather_data.empty:
-    st.dataframe(weather_data.head())
-
-st.subheader("🚉 Stations Data")
-stations_data = load_stations()
-if not stations_data.empty:
-    st.dataframe(stations_data.head())
-
-st.subheader("🚆 Treinlijnen Data")
-train_lines_data = load_train_lines()
-if not train_lines_data.empty:
-    st.dataframe(train_lines_data.head())
 
 @st.cache_data
 def load_bike_data():
