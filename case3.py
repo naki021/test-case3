@@ -282,10 +282,12 @@ def pagina_fiets_vs_weer():
         return merged[["Date", "Total Rides", kolom]]
 
 maanden = [
-    ("juni 2021", fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)], "Start Date")
+    ("juni 2021", fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)], "Start Date"),
+    ("december 2021", fiets[fiets["Start Date"].str.contains("12/2021", na=False)], "Start Date")
+    
 ]
 
-    fig, axs = plt.subplots(1, 1, figsize=(20, 6))
+    fig, axs = plt.subplots(1, 2, figsize=(20, 6))
     for i, (titel, df, datumkolom) in enumerate(maanden):
         data = combineer_fiets_met_weer(df, datumkolom)
         ax = axs[i]
