@@ -127,6 +127,35 @@ def load_bike_data():
             all_data.append(df)
     return pd.concat(all_data, ignore_index=True)
 
+#
+#
+
+@st.cache_data
+def load_bike_data():
+    """Laadt fietsdata uit CSV-bestanden"""
+    bike_folder = os.path.join(BASE_PATH, "Fiets data")  # 确保路径正确
+    all_data = []
+
+    # **检查文件夹是否存在**
+    if not os.path.exists(bike_folder):
+        st.error(f"❌ Bestand niet gevonden: {bike_folder}")
+        return pd.DataFrame()
+
+    for file in os.listdir(bike_folder):
+        if file.endswith(".csv"):  # 确保只加载 CSV 文件
+            path = os.path.join(bike_folder, file)
+            df = pd.read_csv(path, dtype=str, low_memory=False)  # 读取 CSV
+            all_data.append(df)
+
+    # **打印调试信息**
+    st.write(f"📊 Gevonden {len(all_data)} fietsdata bestanden")
+
+    if not all_data:
+        st.error("❌ Geen fietsdata gevonden!")
+        return pd.DataFrame()
+
+    return pd.concat(all_data, ignore_index=True)
+
 
 # -------------------------------
 # PAGINA: KAART EN METRODRUKTE
