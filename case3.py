@@ -340,6 +340,25 @@ def pagina_fiets_vs_weer():
     ax.legend()
     ax.grid(True)
     st.pyplot(fig)
+##### 
+
+from PIL import Image
+
+# Laad de afbeelding
+image = Image.open("foto1.jpg")
+
+# Toon de afbeelding met de nieuwe parameter
+st.image(image, use_container_width=True)
+
+image1 = Image.open("foto1.jpg")
+
+# Toon de afbeelding met de nieuwe parameter
+st.image(image1, use_container_width=True)
+
+image2 = Image.open("foto3.jpg")
+
+# Toon de afbeelding met de nieuwe parameter
+st.image(image2, use_container_width=True)
 
 # -------------------------------
 # MAIN
