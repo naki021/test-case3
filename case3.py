@@ -298,7 +298,7 @@ def pagina_fiets_vs_weer():
     st.pyplot(fig)
 
 
-    st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
+    st.header("Gemiddeld weer per maand (2020–2022)")
     label_dict = {
         "tavg": "Gemiddelde temperatuur (°C)",
         "tmin": "Minimale temperatuur (°C)",
@@ -324,7 +324,7 @@ def pagina_fiets_vs_weer():
     st.pyplot(fig)
 
     # Voorspelling
-    st.subheader("🧠 Voorspelling temperatuur 2023")
+    st.subheader("Voorspelling temperatuur 2023")
     numerieke_kolommen = ["tmin", "tmax", "prcp", "wspd", "pres", "tavg"]
     df_mean = weer.groupby(["year", "month"])[numerieke_kolommen].mean().reset_index()
     model = LinearRegression()
@@ -342,7 +342,7 @@ def pagina_fiets_vs_weer():
     ax.set_xticklabels([calendar.month_abbr[m] for m in range(1, 13)])
     ax.set_xlabel("Maand")
     ax.set_ylabel("Gemiddelde temperatuur (°C)")
-    ax.set_title("🌡️ Voorspelling temperatuur 2023")
+    ax.set_title("Voorspelling temperatuur 2023")
     ax.legend()
     ax.grid(True)
     st.pyplot(fig)
