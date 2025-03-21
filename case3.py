@@ -242,11 +242,26 @@ def pagina_kaart():
 
         # Tabel top 10
         st.subheader(f"Top 10 drukste stations in {year} op basis van {dic[column]}")
-        top10 = dataset[['Station', column]].dropna().sort_values(by=column, ascending=False).head(10)
-        top10.reset_index(drop=True, inplace=True)
-        top10.index += 1
-        st.dataframe(top10)
 
+# Selecteer en sorteer de top 10 stations
+    top_10_stations = dataset[[column1, column]].dropna().sort_values(by=column, ascending=False).head(10)
+
+# Reset de index en maak deze 1 t/m 10
+    top_10_stations.reset_index(drop=True, inplace=True)
+    top_10_stations.index += 1  # Start index bij 1
+
+# Toon de tabel met kleinere kolombreedtes
+    st.markdown(
+        """
+        <style>
+        table {width: auto !important;}
+        th, td {padding: 6px !important; text-align: left !important;}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.dataframe(top_10_stations)
 # -------------------------------
 # PAGINA: FIETS VS WEER
 # -------------------------------
