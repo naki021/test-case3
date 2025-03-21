@@ -240,34 +240,6 @@ def pagina_kaart():
 
         st_folium(maak_drukte_kaart(), width=700, height=500)
 
-st.subheader(f"Top 10 drukste stations in {year} op basis van {dic[column]}")
-
-# Selecteer en sorteer de top 10 stations
-top_10_stations = dataset[[column1, column]].dropna().sort_values(by=column, ascending=False).head(10)
-
-# Reset de index en maak een nette ranglijst van 1 t/m 10
-top_10_stations.reset_index(drop=True, inplace=True)
-top_10_stations['Rang'] = range(1, 11)
-
-# Hernoem kolommen voor nettere weergave (optioneel)
-top_10_stations.columns = ['Station', dic[column], 'Rang']
-
-# Zet 'Rang' als eerste kolom
-top_10_stations = top_10_stations[['Rang', 'Station', dic[column]]]
-
-# CSS om de tabel compacter te maken
-st.markdown(
-    """
-    <style>
-    table {width: auto !important;}
-    th, td {padding: 6px !important; text-align: left !important;}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Toon de tabel
-st.dataframe(top_10_stations)
 
 # -------------------------------
 # PAGINA: FIETS VS WEER
