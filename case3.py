@@ -251,10 +251,12 @@ def pagina_kaart():
 # PAGINA: FIETS VS WEER
 # -------------------------------
 def pagina_fiets_vs_weer():
-    st.title("Fietsritten vs Weer in Londen")
+    st.title("Fietsritten vs Weer in Londen - Alleen juni 2021")
+
     weer = load_weather_data()
     fiets = load_bike_data()
 
+    # Weeropties voor analyse
     weer_opties = {
         "Gemiddelde Temperatuur (°C)": "tavg",
         "Minimale Temperatuur (°C)": "tmin",
@@ -267,6 +269,10 @@ def pagina_fiets_vs_weer():
     keuze = st.selectbox("Kies een weerfactor:", list(weer_opties.keys()))
     kolom = weer_opties[keuze]
 
+    # Alleen fietsritten uit mei/juni 2021
+    fiets_juni = fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)]
+
+    # Data combineren per dag
     def combineer_fiets_met_weer(df, datumkolom):
         df[datumkolom] = pd.to_datetime(df[datumkolom], errors="coerce")
         df["Date"] = df[datumkolom].dt.date
@@ -275,24 +281,22 @@ def pagina_fiets_vs_weer():
         merged = per_dag.merge(weer[["date", kolom]], left_on="Date", right_on="date", how="inner")
         return merged[["Date", "Total Rides", kolom]]
 
-    maanden = [
-        ("juni 2021", fiets[fiets["Start Date"].str.contains("05/2021|06/2021", na=False)], "Start Date"),
-        ("december 2021", fiets[fiets["Start Date"].str.contains("12/2021", na=False)], "Start Date")
-    ]
+    data = combineer_fiets_met_weer(fiets_juni, "Start Date")
 
-    fig, axs = plt.subplots(1, 2, figsize=(20, 6))
-    for i, (titel, df, datumkolom) in enumerate(maanden):
-        data = combineer_fiets_met_weer(df, datumkolom)
-        ax = axs[i]
-        ax2 = ax.twinx()
-        ax.plot(data["Date"], data["Total Rides"], label="Fietsritten", color='blue')
-        ax2.plot(data["Date"], data[kolom], label=keuze, color='red', linestyle='dashed')
-        ax.set_title(f"{titel.capitalize()}: Fietsritten vs {keuze}")
-        ax.set_xlabel("Datum")
-        ax.set_ylabel("Aantal Fietsritten", color='blue')
-        ax2.set_ylabel(keuze, color='red')
+    # Plot maken
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax2 = ax.twinx()
+
+    ax.plot(data["Date"], data["Total Rides"], label="Fietsritten", color='blue')
+    ax2.plot(data["Date"], data[kolom], label=keuze, color='red', linestyle='dashed')
+
+    ax.set_title(f"Juni 2021: Fietsritten vs {keuze}")
+    ax.set_xlabel("Datum")
+    ax.set_ylabel("Aantal Fietsritten", color='blue')
+    ax2.set_ylabel(keuze, color='red')
 
     st.pyplot(fig)
+
 
     st.header("🌤️ Gemiddeld weer per maand (2020–2022)")
     label_dict = {
