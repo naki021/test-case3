@@ -194,7 +194,6 @@ def pagina_kaart():
     st.markdown(legenda_html, unsafe_allow_html=True)
 
     # Dataset selectie
-    datasets = metrodata
     dic = {
         'Entry_Week': 'Entry week',
         'Entry_Saturday': 'Entry Saturday',
@@ -205,47 +204,66 @@ def pagina_kaart():
         'AnnualEntryExit_Mill': 'Annual Entry/Exit in millions',
     }
 
-    year = st.slider("Kies een jaar", min_value=2007, max_value=2016, step=1)
-    dataset = datasets.get(str(year))
+    # Alleen 2021 is beschikbaar
+    jaar_keuze = 2021
+    dataset = metrodata.get(str(jaar_keuze))
 
-    if dataset is not None:
-        column = st.selectbox("Kies een kolom", options=list(dic.keys()))
-        dataset[column] = pd.to_numeric(dataset[column], errors='coerce')
+    if dataset is None or dataset.empty:
+        st.error(f"❌ Geen metrodata beschikbaar voor {jaar_keuze}")
+        return
 
-        # Kaart met kleuren
-        def maak_drukte_kaart():
-            p = folium.Map(location=[51.5074, -0.1278], zoom_start=10)
-            vmin, vmax = (0, 100) if column == 'AnnualEntryExit_Mill' else (0, 140000)
-            colormap = LinearColormap(['green', 'yellow', 'red'], vmin=vmin, vmax=vmax)
-            colormap.caption = dic[column]
-            p.add_child(colormap)
+    st.write(f"✅ Dataset voor {jaar_keuze} geladen met {dataset.shape[0]} rijen en {dataset.shape[1]} kolommen")
+    st.write("📋 Kolommen in dataset:", dataset.columns.tolist())
 
-            for _, row in stations.iterrows():
-                naam = row["properties_name"]
-                coords = row['geometry_coordinates']
-                value = dataset[dataset['Station'] == naam][column].values
-                if len(value) == 0 or pd.isna(value[0]):
-                    continue
-                kleur = colormap(value[0])
-                folium.CircleMarker(
-                    location=[coords[1], coords[0]],
-                    radius=8,
-                    color=kleur,
-                    fill=True,
-                    fill_color=kleur,
-                    fill_opacity=0.7,
-                    popup=f"{naam}: {value[0]}"
-                ).add_to(p)
-            return p
+    column = st.selectbox("Kies een kolom", options=list(dic.keys()))
 
-        st_folium(maak_drukte_kaart(), width=700, height=500)
+    if column not in dataset.columns:
+        st.warning(f"⚠️ Kolom '{column}' niet gevonden in dataset.")
+        return
 
-        # Tabel top 10
-        st.subheader(f"Top 10 drukste stations in {year} op basis van {dic[column]}")
-        top10 = dataset[['Station', column]].dropna().sort_values(by=column, ascending=False).head(10)
-        top10.reset_index(drop=True, inplace=True)
-        top10.index += 1
-        st.dataframe(top10)
+    dataset[column] = pd.to_numeric(dataset[column], errors='coerce')
+
+    # Kaart met kleuren
+    def maak_drukte_kaart():
+        p = folium.Map(location=[51.5074, -0.1278], zoom_start=10)
+        vmin, vmax = (0, 100) if column == 'AnnualEntryExit_Mill' else (0, 140000)
+        colormap = LinearColormap(['green', 'yellow', 'red'], vmin=vmin, vmax=vmax)
+        colormap.caption = dic[column]
+        p.add_child(colormap)
+
+        for _, row in stations.iterrows():
+            naam = row["properties_name"]
+            coords = row['geometry_coordinates']
+            value = dataset[dataset['Station'] == naam][column].values
+            if len(value) == 0 or pd.isna(value[0]):
+                continue
+            kleur = colormap(value[0])
+            folium.CircleMarker(
+                location=[coords[1], coords[0]],
+                radius=8,
+                color=kleur,
+                fill=True,
+                fill_color=kleur,
+                fill_opacity=0.7,
+                popup=f"{naam}: {value[0]}"
+            ).add_to(p)
+        return p
+
+    st_folium(maak_drukte_kaart(), width=700, height=500)
+
+    # Top 10 tabel
+    st.subheader(f"Top 10 drukste stations in {jaar_keuze} op basis van {dic[column]}")
+    if 'Station' not in dataset.columns:
+        st.error("❌ Kolom 'Station' ontbreekt in dataset.")
+        return
+
+    top10 = dataset[['Station', column]].dropna().sort_values(by=column, ascending=False).head(10)
+    top10.reset_index(drop=True, inplace=True)
+    top10.index += 1
+
+    st.write("🔟 Voorbeeld Top 10:")
+    st.dataframe(top10)
+
 
 # -------------------------------
 # PAGINA: FIETS VS WEER
